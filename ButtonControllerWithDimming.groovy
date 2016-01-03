@@ -17,9 +17,9 @@
  *  Get better dimming frequency than 1Hz - try Bruce's method
  *  Add pulse fails safe after x number of dim events
  *
- *  Version 1.0
+ *  Version 1.1
  *  Author: AdamV
- *  Date: 2015-11-22
+ *  Date: 2016-01-03
  *  To set colour and level of lights on push/hold events, connect to a routine or use smart lighting instead
  */
  
@@ -240,7 +240,8 @@ def startPulsing() {
     }
     def button = atomicState.currentButton
     
-    if( currentTime - atomicState.startHoldTime >= pulseDelay ) {
+    if( currentTime - atomicState.startHoldTime >= pulseDelay && atomicState.pulseNumber < 12) {
+        atomicState.pulseNumber ++
         sendButtonHoldContinue();
         }
         
@@ -291,6 +292,7 @@ def sendButtonHoldContinue() {
 def onButtonHoldStart() {
     atomicState.startHoldTime = now()
     atomicState.buttonIsHolding = true
+    atomicState.pulseNumber = 0
     startPulsing()
 }
 
