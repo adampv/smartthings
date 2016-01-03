@@ -13,9 +13,9 @@
  *  Assign Buttons to Wireless Wall controllers
  *
  *  TODO
- *  Allow rename of app
  *  Get Double clicks to work and add as feature
- *  Get better dimming frequency than 1Hz
+ *  Get better dimming frequency than 1Hz - try Bruce's method
+ *  Add pulse fails safe after x number of dim events
  *
  *  Version 1.0
  *  Author: AdamV
