@@ -15,7 +15,8 @@
  *  TODO
  *  Get better dimming frequency than 1Hz - try Bruce's method
  *  Add pulse fails safe after x number of dim events
- *  Turn into Psrent / Child app to avoid clutter for multiple switches
+ *  Get Dim up / Dim down events to work without modifying device
+ *  Turn into Parent / Child app to avoid clutter for multiple switches
  *  Get Double clicks to work and add as feature
  *
  *  Version 1.1
