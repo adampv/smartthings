@@ -17,10 +17,9 @@
  */
  
 metadata {
-	definition (name: "Secure Wall Controller", namespace: "Z-Wave.me", author: "AdamV") {
+	definition (name: "Secure Wall Controller (Z-Wave.me, Popp & Devolo)", namespace: "Z-Wave.me", author: "AdamV") {
 		capability "Actuator"
 		capability "Button"
-        capability "Contact Sensor"
         capability "Battery"
 		capability "Configuration" 
        	capability "Refresh"
@@ -39,7 +38,7 @@ metadata {
 	tiles {
 		standardTile("button", "device.button", width: 2, height: 2) {
 			state "default", label: "", icon: "st.Home.home30", backgroundColor: "#ffffff"
-            state "holdStart", label: "holding", icon: "st.Home.home30", backgroundColor: "#C390D4"
+            state "held", label: "holding", icon: "st.Home.home30", backgroundColor: "#C390D4"
         }
     	 valueTile("battery", "device.battery", inactiveLabel: false, decoration: "flat") {
          	tileAttribute ("device.battery", key: "PRIMARY_CONTROL"){
@@ -80,26 +79,21 @@ def parse(String description) {
 // Split string by comma xter, will return an array.
     String [] sections = description.split( "," )
 //    log.debug("sections: $sections")
-
 // Remove all whitespace from beginning and end of each section string.
  	for (def i = 0; i < sections.length; i++) {
         sections[ i ] = sections[ i ].trim()
 	}
 //    log.debug("Trimmed sections: $sections")
-
 // Fetch the command and payload strings from the sections array.
 	String command = sections[ 1 ]
 	String payload = sections[ 2 ]
 //	log.debug( "Command: $command" )
 //	log.debug( "Payload: $payload" )
-
 // Get the command ID and payload ID from these strings.
 	String commandID = command[-4..-1]
 	String payloadID = payload[-2..-1]
-
 //	log.debug( "CommandID: $commandID" )
 //	log.debug( "PayloadID: $payloadID" )
-
 // Coerce the payloadID to a Number from a string (using base 10 as radix)
 	Integer payloadIDint = payloadID.toInteger()
 //    log.debug(payloadIDint)
@@ -219,7 +213,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
    	else if  ( cmd.sceneId == 13 ) {
         	Integer button = 1
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed", isStateChange: true)
-            log.debug( "Button $button Hold start" )
+            log.debug( "Button $button Hold start - held" )
             }
    	else if  ( cmd.sceneId == 15 ) {
         	Integer button = 1
@@ -234,7 +228,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 23 ) {
         	Integer button = 2
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start" )
+        	log.debug( "Button $button Hold start - held" )
             }
    	else if  ( cmd.sceneId == 25 ) {
         	Integer button = 2
@@ -249,7 +243,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 14 ) {
         	Integer button = 3
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start" )
+        	log.debug( "Button $button Hold start - held" )
             }
    	else if  ( cmd.sceneId == 16 ) {
         	Integer button = 3
@@ -264,7 +258,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 24 ) {
         	Integer button = 4
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start" )
+        	log.debug( "Button $button Hold start - held" )
             }
    	else if  ( cmd.sceneId == 26 ) {
         	Integer button = 4
@@ -304,7 +298,6 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 
 /*
     // Correct configure for default hold trigger:
-
     for (def i = 11; i <= 14; i++) {
     //  	commands << zwave.associationV1.associationSet(groupingIdentifier: 2, nodeId: zwaveHubNodeId).format()
     //	commands << zwave.sceneControllerConfV1.sceneControllerConfSet(groupId:i, sceneId:i).format()
