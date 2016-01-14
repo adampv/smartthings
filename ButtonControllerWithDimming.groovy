@@ -15,16 +15,19 @@
  *  TODO
  *  Get better dimming frequency than 1Hz
  *  Turn into Parent / Child app to avoid clutter for multiple switches
- *  Get Double clicks to work and add as feature
  *
- *  Version 1.3
+ *  Version 1.4
  *  Author: AdamV
- *  Date: 2016-01-06
- *  To set colour and level of lights on push/hold events, connect to a routine or use smart lighting instead
+ *  Date: 2016-01-14
+ *
+ *	Changes since 1.3:
+ *	- Double Clicks working now! Thanks to Stuart Buchanan
+ *	- Cleaned up labels in setup
+ *  To set colour and level of lights on push/hold events, connect to a routine, use smart lighting or Rule Machine
  */
  
 definition(
-    name: "Button controller with dimming",
+    name: "Button controller with dimming & double clicks",
     namespace: "AdamV",
     author: "AdamV",
     description: "Assign events to button pushes, hold start, whilst held, & hold end to swicthes and level switches.For Z-Wave.me Secure Wireless Wall controller (ZME_WALLC-S), Z-Wave.me Wall controller 2 (ZME_WALLC-2), Popp Wall C Forever, Devolo Wall Switch & Z-Wave.me Key Fob",
@@ -104,7 +107,7 @@ def selectController() {
 }
 
 def configureButton1() {
-    dynamicPage(name: "configureButton1", title: "Decide how to use the first button:",
+    dynamicPage(name: "configureButton1", title: "\n\n Setup the FIRST button here:\n\n",
         nextPage: "configureButton2", uninstall: configured()) {
         def phrases = location.helloHome?.getPhrases()*.label
             if (phrases) {
@@ -114,24 +117,29 @@ def configureButton1() {
                     input "Device1pressRoutine", "enum", title: "Routine(s) to trigger", required: false, options: phrases
                 }
             }               
-        section ("Long Hold (instead of whilst held)")  {
+        section ("On button hold (only fired once)")  {
             input "Device1longholdSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
             input "Device1longholdDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device1longholdDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
             }
-        section ("Whilst Held Pulse (every 1s whilst held)")  {
+        section ("Whilst button is held (fired every 1s whilst held)")  {
             input "Device1heldDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device1heldDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
             }
-        section ("When a Long Hold or Whilst Held is Released")  {
+        section ("When button is released")  {
             input "Device1ReleaseSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
             input "Device1ReleaseDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device1ReleaseDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
         	}
+       	section ("When button is double clicked")  {
+            input "Device1DoubleSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device1DoubleDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device1DoubleDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+        	}
     }
 }
 def configureButton2() {
-    dynamicPage(name: "configureButton2", title: "Set Up your second button here:",
+    dynamicPage(name: "configureButton2", title: "\n\n Setup the SECOND button here:\n\n",
         nextPage: "configureButton3", uninstall: configured()) {
         def phrases = location.helloHome?.getPhrases()*.label
             if (phrases) {
@@ -141,25 +149,30 @@ def configureButton2() {
                     input "Device2pressRoutine", "enum", title: "Routine(s) to trigger", required: false, options: phrases
                 }
             }  
-        section ("Long Hold (instead of whilst held)")  {
+        section ("On button hold (only fired once)")  {
             input "Device2longholdSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
             input "Device2longholdDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device2longholdDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
             }
-        section ("Whilst Held Pulse (every 1s whilst held)")  {
+        section ("Whilst button is held (fired every 1s whilst held)")  {
             input "Device2heldDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device2heldDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
             }
-        section ("When a Long Hold or Whilst Held is Released")  {
+        section ("When button is released")  {
             input "Device2ReleaseSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
             input "Device2ReleaseDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device2ReleaseDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
-        }
+        	}
+      	section ("When button is double clicked")  {
+            input "Device2DoubleSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device2DoubleDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device2DoubleDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+        	}
     }
 }
 
 def configureButton3() {
-    dynamicPage(name: "configureButton3", title: "Set Up your third button here:",
+    dynamicPage(name: "configureButton3", title: "\n\n Setup the THIRD button here:\n\n",
         nextPage: "configureButton4", uninstall: configured()) {
         def phrases = location.helloHome?.getPhrases()*.label
             if (phrases) {
@@ -169,24 +182,29 @@ def configureButton3() {
                     input "Device3pressRoutine", "enum", title: "Routine(s) to trigger", required: false, options: phrases
                 }
             }  
-        section ("Long Hold (instead of whilst held)")  {
+        section ("On button hold (only fired once)")  {
             input "Device3longholdSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
             input "Device3longholdDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device3longholdDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
             }
-        section ("Whilst Held Pulse (every 1s whilst held)")  {
+        section ("Whilst button is held (fired every 1s whilst held)")  {
             input "Device3heldDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device3heldDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
             }
-        section ("When a Long Hold or Whilst Held is Released")  {
+        section ("When button is released")  {
             input "Device3ReleaseSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
             input "Device3ReleaseDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device3ReleaseDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
-        }
+        	}
+        section ("When button is double clicked")  {
+            input "Device3DoubleSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device3DoubleDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device3DoubleDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+        	}
     }
 }
 def configureButton4() {
-    dynamicPage(name: "configureButton4", title: "Set Up your fourth button here:",
+    dynamicPage(name: "configureButton4", title: "\n\n Setup the FOURTH button here:\n\n",
         install: true, uninstall: true ) {
         def phrases = location.helloHome?.getPhrases()*.label
             if (phrases) {
@@ -196,20 +214,25 @@ def configureButton4() {
                     input "Device4pressRoutine", "enum", title: "Routine(s) to trigger", required: false, options: phrases
                 }
             }  
-        section ("Long Hold (instead of whilst held)")  {
+        section ("On button hold (only fired once)")  {
             input "Device4longholdSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
             input "Device4longholdDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device4longholdDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
             }
-        section ("Whilst Held Pulse (every 1s whilst held)")  {
+        section ("Whilst button is held (fired every 1s whilst held)")  {
             input "Device4heldDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device4heldDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
             }
-        section ("When a Long Hold or Whilst Held is Released")  {
+        section ("When button is released")  {
             input "Device4ReleaseSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
             input "Device4ReleaseDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device4ReleaseDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
-        }
+        	}
+      	section ("When button is double clicked")  {
+            input "Device4DoubleSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device4DoubleDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device4DoubleDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+        	}
     }
 }
 
@@ -494,6 +517,18 @@ def executeHandlers(buttonNumber, value) {
                 }
                 log.debug "$buttonNumber $value"
             }
+            else if (value == "doubleClick" && buttonNumber == 1) {
+                if (Device1DoubleSwitch != null) toggle(Device1DoubleSwitch)
+                if (Device1DoubleDimUp != null) {
+                    def newLevel = Device1DoubleDimUp[0].currentLevel + state.dimIncrement
+                    Device1DoubleDimUp.setLevel(newLevel)
+                }
+                if (Device1DoubleDimDown != null) {
+                    def newLevel = Device1DoubleDimDown[0].currentLevel - state.dimIncrement
+                    Device1DoubleDimDown.setLevel(newLevel)
+                }
+                log.debug "$buttonNumber $value"
+            }
             else if (value == "pushed" && buttonNumber == 2) {
                 if (Device2press != null) toggle(Device2press)
                 if (Device2pressRoutine != null) location.helloHome?.execute(settings.Device2pressRoutine)
@@ -537,6 +572,18 @@ def executeHandlers(buttonNumber, value) {
                     // Device2ReleaseDimDown.levelDown()
                     def newLevel = Device2ReleaseDimDown[0].currentLevel - state.dimIncrement
                     Device2ReleaseDimDown.setLevel(newLevel)
+                }
+                log.debug "$buttonNumber $value"
+            }
+            else if (value == "doubleClick" && buttonNumber == 2) {
+                if (Device2DoubleSwitch != null) toggle(Device2DoubleSwitch)
+                if (Device2DoubleDimUp != null) {
+                    def newLevel = Device2DoubleDimUp[0].currentLevel + state.dimIncrement
+                    Device2DoubleDimUp.setLevel(newLevel)
+                }
+                if (Device2DoubleDimDown != null) {
+                    def newLevel = Device2DoubleDimDown[0].currentLevel - state.dimIncrement
+                    Device2DoubleDimDown.setLevel(newLevel)
                 }
                 log.debug "$buttonNumber $value"
             }
@@ -586,6 +633,18 @@ def executeHandlers(buttonNumber, value) {
                 }
                 log.debug "$buttonNumber $value"
             }
+            else if (value == "doubleClick" && buttonNumber == 3) {
+                if (Device3DoubleSwitch != null) toggle(Device3DoubleSwitch)
+                if (Device3DoubleDimUp != null) {
+                    def newLevel = Device3DoubleDimUp[0].currentLevel + state.dimIncrement
+                    Device3DoubleDimUp.setLevel(newLevel)
+                }
+                if (Device3DoubleDimDown != null) {
+                    def newLevel = Device3DoubleDimDown[0].currentLevel - state.dimIncrement
+                    Device3DoubleDimDown.setLevel(newLevel)
+                }
+                log.debug "$buttonNumber $value"
+            }
             else if (value == "pushed" && buttonNumber == 4) {
                 if (Device4press != null) toggle(Device4press)
                 if (Device4pressRoutine != null) location.helloHome?.execute(settings.Device4pressRoutine)
@@ -629,6 +688,18 @@ def executeHandlers(buttonNumber, value) {
                      Device4ReleaseDimDown.levelDown()
                     def newLevel = Device4ReleaseDimDown[0].currentLevel - state.dimIncrement
                     Device4ReleaseDimDown.setLevel(newLevel)
+                }
+                log.debug "$buttonNumber $value"
+            }
+            else if (value == "doubleClick" && buttonNumber == 4) {
+                if (Device4DoubleSwitch != null) toggle(Device4DoubleSwitch)
+                if (Device4DoubleDimUp != null) {
+                    def newLevel = Device4DoubleDimUp[0].currentLevel + state.dimIncrement
+                    Device4DoubleDimUp.setLevel(newLevel)
+                }
+                if (Device4DoubleDimDown != null) {
+                    def newLevel = Device4DoubleDimDown[0].currentLevel - state.dimIncrement
+                    Device4DoubleDimDown.setLevel(newLevel)
                 }
                 log.debug "$buttonNumber $value"
             }
