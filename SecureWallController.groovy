@@ -10,14 +10,12 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- * 	TODO:
- *	Get Double Click working
- *	Create Smartapp to handle dim events
+ * 	
  *
  */
  
 metadata {
-	definition (name: "Secure Wall Controller (Z-Wave.me, Popp & Devolo)", namespace: "Z-Wave.me", author: "AdamV") {
+	definition (name: "Secure Wall Controllers & Key Fobs (Z-Wave.me, Popp & Devolo)", namespace: "Z-Wave.me", author: "AdamV") {
 		capability "Actuator"
 		capability "Button"
         capability "Battery"
@@ -26,7 +24,7 @@ metadata {
 
         
 		fingerprint deviceId: "0x1801", inClusters: "0x5E, 0x70, 0x85, 0x2D, 0x8E, 0x80, 0x84, 0x8F, 0x5A, 0x59, 0x5B, 0x73, 0x86, 0x72, 0xEF, 0x20, 0x5B, 0x26, 0x27, 0x2B, 0x60"
-   														
+   		fingerprint deviceId: "0x1202", inClusters: "0x5E, 0x8F, 0x73, 0x98, 0x86, 0x72, 0x70, 0x85, 0x2D, 0x8E, 0x80, 0x84, 0x5A, 0x59, 0x5B, 0xEF, 0x20, 0x5B, 0x26, 0x27, 0x2B, 0x60"												
    }
 
 	simulator {
@@ -67,96 +65,17 @@ def parse(String description) {
     //    log.debug "Parsed Command: $cmd"
         if (cmd) {
        	results = zwaveEvent(cmd)
-
 		}
-
     }
-
-/* 
-// OLD logic for default configuration:
-	def BUTTON_IDs = [ 1, 2, 5, 6 ]
-    
-// Split string by comma xter, will return an array.
-    String [] sections = description.split( "," )
-//    log.debug("sections: $sections")
-// Remove all whitespace from beginning and end of each section string.
- 	for (def i = 0; i < sections.length; i++) {
-        sections[ i ] = sections[ i ].trim()
-	}
-//    log.debug("Trimmed sections: $sections")
-// Fetch the command and payload strings from the sections array.
-	String command = sections[ 1 ]
-	String payload = sections[ 2 ]
-//	log.debug( "Command: $command" )
-//	log.debug( "Payload: $payload" )
-// Get the command ID and payload ID from these strings.
-	String commandID = command[-4..-1]
-	String payloadID = payload[-2..-1]
-//	log.debug( "CommandID: $commandID" )
-//	log.debug( "PayloadID: $payloadID" )
-// Coerce the payloadID to a Number from a string (using base 10 as radix)
-	Integer payloadIDint = payloadID.toInteger()
-//    log.debug(payloadIDint)
-*/
-/*
-// Determine which button was pressed.
-	if ( commandID == "9881" && payloadIDint == BUTTON_IDs[ 0 ]) {
-        	Integer button = 1
-            results = createEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was pushed" )
-            }
-    else if  ( commandID == "9881" && payloadIDint == BUTTON_IDs[ 1 ]) {
-        	Integer button = 2
-            results = createEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was pushed" )
-            }
-    	else if  ( commandID == "9881" && payloadIDint == BUTTON_IDs[ 2 ]) {
-        	Integer button = 3
-            results = createEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was pushed" )
-            }
-    	else if  ( commandID == "9881" && payloadIDint == BUTTON_IDs[ 3 ]) {
-        	Integer button = 4
-            results = createEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was pushed" )
-            }
-        else if  ( commandID == "98C1" && payloadIDint == BUTTON_IDs[ 0 ]) {
-        	Integer button = 1
-            results = createEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was held", isStateChange: true)
-        	log.debug( "Button $button was held" )
-            }
-    	else if  ( commandID == "98C1" && payloadIDint == BUTTON_IDs[ 1 ]) {
-        	Integer button = 2
-            results = createEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was held" )
-            }
-    	else if  ( commandID == "98C1" && payloadIDint == BUTTON_IDs[ 2 ]) {
-        	Integer button = 4
-            results = createEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was held" ) 
-            }
-    	else if  ( commandID == "98C1" && payloadIDint == BUTTON_IDs[ 3 ]) {
-        	Integer button = 4
-            results = createEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was held" )
-			}    
-    	else {
-        	log.debug( "Commands and Button ID combinations unaccounted for happened" )
-            }
-         
-       return results
-//        return commandID
- */   
- 
-    }
+}
   
 
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
         def encapsulatedCommand = cmd.encapsulatedCommand([0x98: 1, 0x20: 1])
-
+				log.debug("UnsecuredCommand: $encapsulatedCommand")
         // can specify command class versions here like in zwave.parse
         if (encapsulatedCommand) {
-        		log.debug(encapsulatedCommand)
+        		log.debug("UnsecuredCommand: $encapsulatedCommand")
                 return zwaveEvent(encapsulatedCommand)
         }
 }
@@ -201,14 +120,21 @@ def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd){
 
 
 def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet cmd) {
-	//log.debug( "Dimming Duration: $cmd.dimmingDuration")
-    //log.debug( "Button code: $cmd.sceneId")
+	// log.debug( "Dimming Duration: $cmd.dimmingDuration")
+    // log.debug( "Button code: $cmd.sceneId")
    
     
     if ( cmd.sceneId == 11 ) {
         	Integer button = 1
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
         	log.debug( "Button $button was pushed" )
+            }
+   	else if  ( cmd.sceneId == 12 ) {
+			Integer button = 1
+            def patchButton = button + 4
+			sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button was Double Clicked" )
             }
    	else if  ( cmd.sceneId == 13 ) {
         	Integer button = 1
@@ -225,6 +151,13 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
         	log.debug( "Button $button was pushed" )
             }
+    else if  ( cmd.sceneId == 22 ) {
+			Integer button = 2
+            def patchButton = button + 4
+			sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button was Double Clicked" )
+            }
     else if  ( cmd.sceneId == 23 ) {
         	Integer button = 2
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
@@ -235,32 +168,46 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
             }
-	else if  ( cmd.sceneId == 12 ) {
+	else if  ( cmd.sceneId == 31 ) {
         	Integer button = 3
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
         	log.debug( "Button $button was pushed" )
             }
-    else if  ( cmd.sceneId == 14 ) {
+    else if  ( cmd.sceneId == 32 ) {
+			Integer button = 3
+            def patchButton = button + 4
+			sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button was Double Clicked" )
+            }
+    else if  ( cmd.sceneId == 33 ) {
         	Integer button = 3
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
         	log.debug( "Button $button Hold start - held" )
             }
-   	else if  ( cmd.sceneId == 16 ) {
+   	else if  ( cmd.sceneId == 35 ) {
         	Integer button = 3
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
             }
-    else if ( cmd.sceneId == 22 ) {
+    else if ( cmd.sceneId == 41 ) {
         	Integer button = 4
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
         	log.debug( "Button $button was pushed" )
             }
-    else if  ( cmd.sceneId == 24 ) {
+    else if  ( cmd.sceneId == 42 ) {
+			Integer button = 4
+            def patchButton = button + 4
+			sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button was Double Clicked" )
+            }
+    else if  ( cmd.sceneId == 43 ) {
         	Integer button = 4
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
         	log.debug( "Button $button Hold start - held" )
             }
-   	else if  ( cmd.sceneId == 26 ) {
+   	else if  ( cmd.sceneId == 45 ) {
         	Integer button = 4
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
@@ -281,8 +228,35 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 
 
   def configure() {
+    
+    
+    
+    
     def commands = [ ]
+			log.debug "Resetting Sensor Parameters to SmartThings Compatible Defaults"
+	def cmds = []
+    cmds << zwave.associationV1.associationSet(groupingIdentifier: 2, nodeId: zwaveHubNodeId).format()
+    cmds << zwave.associationV1.associationSet(groupingIdentifier: 3, nodeId: zwaveHubNodeId).format()
+    cmds << zwave.associationV1.associationSet(groupingIdentifier: 4, nodeId: zwaveHubNodeId).format()
+    cmds << zwave.associationV1.associationSet(groupingIdentifier: 5, nodeId: zwaveHubNodeId).format()
+	cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 1, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 2, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [4], parameterNumber: 11, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [4], parameterNumber: 12, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [4], parameterNumber: 13, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [4], parameterNumber: 14, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 21, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 22, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 24, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 25, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 30, size: 1).format()
+    
+    delayBetween(cmds, 500)
+}
+       
 
+
+/*
 // Correct configure for dim events:
 
     for (def i = 11; i <= 12; i++) {
@@ -295,18 +269,10 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
     //	commands << zwave.sceneControllerConfV1.sceneControllerConfSet(groupId: 5, sceneId:i).format()
        commands << zwave.configurationV1.configurationSet(parameterNumber:i, size: 1, scaledConfigurationValue:4).format()
 	}
-
-/*
-    // Correct configure for default hold trigger:
-    for (def i = 11; i <= 14; i++) {
-    //  	commands << zwave.associationV1.associationSet(groupingIdentifier: 2, nodeId: zwaveHubNodeId).format()
-    //	commands << zwave.sceneControllerConfV1.sceneControllerConfSet(groupId:i, sceneId:i).format()
-       commands << zwave.configurationV1.configurationSet(parameterNumber:i, size:1, scaledConfigurationValue:8).format()
-	}
-*/
 	
     log.debug("Sending configuration")
 	
     
     delayBetween(commands, 1250)
-}
+    
+ */
