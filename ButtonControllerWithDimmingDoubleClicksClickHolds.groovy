@@ -16,10 +16,15 @@
  *  Get better dimming frequency than 1Hz
  *  Turn into Parent / Child app to avoid clutter for multiple switches
  *
- *  Version 1.4
+ *  Version 1.5
  *  Author: AdamV
- *  Date: 2016-01-14
+ *  Date: 2016-01-17
  *
+ *	
+ *	Changes since 1.4:
+ *	- Click Hold action now works as well! Thanks to Miles Frankland
+ *	- Cleaned up log reporting
+ * 
  *	Changes since 1.3:
  *	- Double Clicks working now! Thanks to Stuart Buchanan
  *	- Cleaned up labels in setup
@@ -27,7 +32,7 @@
  */
  
 definition(
-    name: "Button controller with dimming & double clicks",
+    name: "Button controller with dimming, double clicks, & click-holds",
     namespace: "AdamV",
     author: "AdamV",
     description: "Assign events to button pushes, hold start, whilst held, & hold end to swicthes and level switches.For Z-Wave.me Secure Wireless Wall controller (ZME_WALLC-S), Z-Wave.me Wall controller 2 (ZME_WALLC-2), Popp Wall C Forever, Devolo Wall Switch & Z-Wave.me Key Fob",
@@ -136,6 +141,16 @@ def configureButton1() {
             input "Device1DoubleDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device1DoubleDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
         	}
+        section ("When button is click-held (only fired once)")  {
+            input "Device1clickholdSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device1clickholdDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device1clickholdDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+            }
+        section ("When button is click-held-released (only fired once)")  {
+            input "Device1clickholdreleaseSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device1clickholdreleaseDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device1clickholdreleaseDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+            }
     }
 }
 def configureButton2() {
@@ -168,6 +183,16 @@ def configureButton2() {
             input "Device2DoubleDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device2DoubleDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
         	}
+        section ("When button is click-held (only fired once)")  {
+            input "Device2clickholdSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device2clickholdDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device2clickholdDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+            }
+        section ("When button is click-held-released (only fired once)")  {
+            input "Device2clickholdreleaseSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device2clickholdreleaseDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device2clickholdreleaseDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+            }
     }
 }
 
@@ -201,6 +226,16 @@ def configureButton3() {
             input "Device3DoubleDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device3DoubleDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
         	}
+       	section ("When button is click-held (only fired once)")  {
+            input "Device3clickholdSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device3clickholdDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device3clickholdDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+            }
+        section ("When button is click-held-released (only fired once)")  {
+            input "Device3clickholdreleaseSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device3clickholdreleaseDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device3clickholdreleaseDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+            }
     }
 }
 def configureButton4() {
@@ -233,6 +268,16 @@ def configureButton4() {
             input "Device4DoubleDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
             input "Device4DoubleDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
         	}
+        section ("When button is click-held (only fired once)")  {
+            input "Device4clickholdSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device4clickholdDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device4clickholdDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+            }
+        section ("When button is click-held-released (only fired once)")  {
+            input "Device4clickholdreleaseSwitch", "capability.switch", title: "Device(s) to switch on/off", multiple: true, required: false
+            input "Device4clickholdreleaseDimUp", "capability.switchLevel", title: "Device(s) to Dim / Roll Up", multiple: true, required: false
+            input "Device4clickholdreleaseDimDown", "capability.switchLevel", title: "Device(s) to Dim / Roll Down", multiple: true, required: false
+            }
     }
 }
 
@@ -529,6 +574,40 @@ def executeHandlers(buttonNumber, value) {
                 }
                 log.debug "$buttonNumber $value"
             }
+            else if (value == "clickHoldStart" && buttonNumber == 1) {
+                atomicState.currentButton = buttonNumber
+                if (Device1clickholdSwitch != null) toggle(Device1clickholdSwitch)
+                if (Device1clickholDimUp != null) {
+                    def newLevel = Device1clickholdDimUp[0].currentLevel + state.dimIncrement
+                    log.debug("newLevel is $newLevel")
+                    Device1clickholdDimUp.setLevel(newLevel)
+                    // Device1longholdDimUp.levelUp()
+                log.debug "Button $buttonNumber click hold start going up"
+                }
+                if (Device1clickholdDimDown != null) {
+                    def newLevel = Device1clickholdDimDown[0].currentLevel - state.dimIncrement
+                    Device1clickholDimDown.setLevel(newLevel)
+                    // Device1longholdDimDown.levelDown()
+                log.debug "Button $buttonNumber click hold start going down"
+                }
+            }
+           	else if (value == "clickHoldStop" && buttonNumber == 1) {
+                atomicState.currentButton = buttonNumber
+                if (Device1clickholdreleaseSwitch != null) toggle(Device1longholdSwitch)
+                if (Device1clickholdreleaseDimUp != null) {
+                    def newLevel = Device1clickholdreleaseDimUp[0].currentLevel + state.dimIncrement
+                    log.debug("newLevel is $newLevel")
+                    Device1clickholdreleaseDimUp.setLevel(newLevel)
+                    // Device1longholdDimUp.levelUp()
+                log.debug "Button $buttonNumber long hold going up"
+                }
+                if (Device1clickholdreleaseDimDown != null) {
+                    def newLevel = Device1clickholdreleaseDimDown[0].currentLevel - state.dimIncrement
+                    Device1clickholdreleaseDimDown.setLevel(newLevel)
+                    // Device1longholdDimDown.levelDown()
+                log.debug "Button $buttonNumber long hold going down"
+                }
+            }
             else if (value == "pushed" && buttonNumber == 2) {
                 if (Device2press != null) toggle(Device2press)
                 if (Device2pressRoutine != null) location.helloHome?.execute(settings.Device2pressRoutine)
@@ -586,6 +665,40 @@ def executeHandlers(buttonNumber, value) {
                     Device2DoubleDimDown.setLevel(newLevel)
                 }
                 log.debug "$buttonNumber $value"
+            }
+           	else if (value == "clickHoldStart" && buttonNumber == 2) {
+                atomicState.currentButton = buttonNumber
+                if (Device2clickholdSwitch != null) toggle(Device2clickholdSwitch)
+                if (Device2clickholdDimUp != null) {
+                    def newLevel = Device2clickholdDimUp[0].currentLevel + state.dimIncrement
+                    log.debug("newLevel is $newLevel")
+                    Device2clickholdDimUp.setLevel(newLevel)
+                    // Device1longholdDimUp.levelUp()
+                log.debug "Button $buttonNumber click hold start going up"
+                }
+                if (Device2clickholdDimDown != null) {
+                    def newLevel = Device2clickholdDimDown[0].currentLevel - state.dimIncrement
+                    Device2clickholdDimDown.setLevel(newLevel)
+                    // Device1longholdDimDown.levelDown()
+                log.debug "Button $buttonNumber click hold start going down"
+                }
+            }
+           	else if (value == "clickHoldStop" && buttonNumber == 2) {
+                atomicState.currentButton = buttonNumber
+                if (Device2clickholdreleaseSwitch != null) toggle(Device2clickholdreleaseSwitch)
+                if (Device2clickholdreleaseDimUp != null) {
+                    def newLevel = Device2clickholdreleaseDimUp[0].currentLevel + state.dimIncrement
+                    log.debug("newLevel is $newLevel")
+                    Device2clickholdreleaseDimUp.setLevel(newLevel)
+                    // Device1longholdDimUp.levelUp()
+                log.debug "Button $buttonNumber long hold going up"
+                }
+                if (Device2clickholdreleaseDimDown != null) {
+                    def newLevel = Device2clickholdreleaseDimDown[0].currentLevel - state.dimIncrement
+                    Device2clickholdreleaseDimDown.setLevel(newLevel)
+                    // Device1longholdDimDown.levelDown()
+                log.debug "Button $buttonNumber long hold going down"
+                }
             }
             else if (value == "pushed" && buttonNumber == 3) {
                 if (Device3press != null) toggle(Device3press)
@@ -645,6 +758,40 @@ def executeHandlers(buttonNumber, value) {
                 }
                 log.debug "$buttonNumber $value"
             }
+            else if (value == "clickHoldStart" && buttonNumber == 3) {
+                atomicState.currentButton = buttonNumber
+                if (Device3clickholdSwitch != null) toggle(Device3clickholdSwitch)
+                if (Device3clickholdDimUp != null) {
+                    def newLevel = Device3clickholdDimUp[0].currentLevel + state.dimIncrement
+                    log.debug("newLevel is $newLevel")
+                    Device3clickholdDimUp.setLevel(newLevel)
+                    // Device1longholdDimUp.levelUp()
+                log.debug "Button $buttonNumber click hold start going up"
+                }
+                if (Device3clickholdDimDown != null) {
+                    def newLevel = Device3clickholdDimDown[0].currentLevel - state.dimIncrement
+                    Device3clickholdDimDown.setLevel(newLevel)
+                    // Device1longholdDimDown.levelDown()
+                log.debug "Button $buttonNumber click hold start going down"
+                }
+            }
+           	else if (value == "clickHoldStop" && buttonNumber == 3) {
+                atomicState.currentButton = buttonNumber
+                if (Device3clickholdreleaseSwitch != null) toggle(Device3clickholdreleaseSwitch)
+                if (Device3clickholdreleaseDimUp != null) {
+                    def newLevel = Device3clickholdreleaseDimUp[0].currentLevel + state.dimIncrement
+                    log.debug("newLevel is $newLevel")
+                    Device3clickholdreleaseDimUp.setLevel(newLevel)
+                    // Device1longholdDimUp.levelUp()
+                log.debug "Button $buttonNumber long hold going up"
+                }
+                if (Device3clickholdreleaseDimDown != null) {
+                    def newLevel = Device3clickholdreleaseDimDown[0].currentLevel - state.dimIncrement
+                    Device3clickholdreleaseDimDown.setLevel(newLevel)
+                    // Device1longholdDimDown.levelDown()
+                log.debug "Button $buttonNumber long hold going down"
+                }
+            }
             else if (value == "pushed" && buttonNumber == 4) {
                 if (Device4press != null) toggle(Device4press)
                 if (Device4pressRoutine != null) location.helloHome?.execute(settings.Device4pressRoutine)
@@ -702,6 +849,40 @@ def executeHandlers(buttonNumber, value) {
                     Device4DoubleDimDown.setLevel(newLevel)
                 }
                 log.debug "$buttonNumber $value"
+            }
+           	else if (value == "clickHoldStart" && buttonNumber == 4) {
+                atomicState.currentButton = buttonNumber
+                if (Device4clickholdSwitch != null) toggle(Device4clickholdSwitch)
+                if (Device4clickholdDimUp != null) {
+                    def newLevel = Device4clickholdDimUp[0].currentLevel + state.dimIncrement
+                    log.debug("newLevel is $newLevel")
+                    Device4clickholdDimUp.setLevel(newLevel)
+                    // Device1longholdDimUp.levelUp()
+                log.debug "Button $buttonNumber click hold start going up"
+                }
+                if (Device4clickholdDimDown != null) {
+                    def newLevel = Device4clickholdDimDown[0].currentLevel - state.dimIncrement
+                    Device4clickholdDimDown.setLevel(newLevel)
+                    // Device1longholdDimDown.levelDown()
+                log.debug "Button $buttonNumber click hold start going down"
+                }
+            }
+           	else if (value == "clickHoldStop" && buttonNumber == 4) {
+                atomicState.currentButton = buttonNumber
+                if (Device4clickholdreleaseSwitch != null) toggle(Device4clickholdreleaseSwitch)
+                if (Device4clickholdreleaseDimUp != null) {
+                    def newLevel = Device4clickholdreleaseDimUp[0].currentLevel + state.dimIncrement
+                    log.debug("newLevel is $newLevel")
+                    Device4clickholdreleaseDimUp.setLevel(newLevel)
+                    // Device1longholdDimUp.levelUp()
+                log.debug "Button $buttonNumber long hold going up"
+                }
+                if (Device4clickholdreleaseDimDown != null) {
+                    def newLevel = Device4clickholdreleaseDimDown[0].currentLevel - state.dimIncrement
+                    Device4clickholdreleaseDimDown.setLevel(newLevel)
+                    // Device1longholdDimDown.levelDown()
+                log.debug "Button $buttonNumber long hold going down"
+                }
             }
 
 }
