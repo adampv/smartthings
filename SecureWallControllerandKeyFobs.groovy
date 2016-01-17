@@ -1,6 +1,5 @@
 /**
  *  Copyright 2015 AdamV
- *  Contoller Configuration code thanks to Stuart Buchanan
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -11,7 +10,10 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- * 	
+ *
+ *  Version 1.5
+ *  Author: AdamV
+ *  Date: 2016-01-17
  *
  */
  
@@ -56,14 +58,14 @@ metadata {
 
 def parse(String description) {
 	def results = []
-    log.debug("RAW command: $description")
+    // log.debug("RAW command: $description")
 	if (description.startsWith("Err")) {
 		log.debug("An error has occurred")
 		} 
     else {
        
        	def cmd = zwave.parse(description.replace("98C1", "9881"), [0x98: 1, 0x20: 1, 0x84: 1, 0x80: 1, 0x60: 3, 0x2B: 1, 0x26: 1])
-    //    log.debug "Parsed Command: $cmd"
+        // log.debug "Parsed Command: $cmd"
         if (cmd) {
        	results = zwaveEvent(cmd)
 		}
@@ -97,7 +99,7 @@ def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelG
 	log.debug "Multilevel get: $cmd"
 }
 def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelReport cmd) {
-	log.debug "Multilevel report: $cmd"
+	log.debug "Multilevel report: $cmd.sensorValue"
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
@@ -140,12 +142,26 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
    	else if  ( cmd.sceneId == 13 ) {
         	Integer button = 1
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed", isStateChange: true)
-            log.debug( "Button $button Hold start - held" )
+            log.debug( "Button $button Hold start" )
+            }
+    else if  ( cmd.sceneId == 14 ) {
+			Integer button = 1
+            def patchButton = button + 8
+			sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 15 ) {
         	Integer button = 1
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
+            }
+    else if  ( cmd.sceneId == 16 ) {
+			Integer button = 1
+            def patchButton = button + 8
+			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button Click-Hold Stopped" )
             }
     else if  ( cmd.sceneId == 21 ) {
         	Integer button = 2
@@ -162,12 +178,26 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 23 ) {
         	Integer button = 2
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start - held" )
+        	log.debug( "Button $button Hold start" )
+            }
+    else if  ( cmd.sceneId == 24 ) {
+			Integer button = 2
+            def patchButton = button + 8
+			sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 25 ) {
         	Integer button = 2
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
+            }
+    else if  ( cmd.sceneId == 26 ) {
+			Integer button = 2
+            def patchButton = button + 8
+			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button Click-Hold Stopped" )
             }
 	else if  ( cmd.sceneId == 31 ) {
         	Integer button = 3
@@ -184,12 +214,26 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 33 ) {
         	Integer button = 3
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start - held" )
+        	log.debug( "Button $button Hold start" )
+            }
+    else if  ( cmd.sceneId == 34 ) {
+			Integer button = 3
+            def patchButton = button + 8
+			sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 35 ) {
         	Integer button = 3
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
+            }
+    else if  ( cmd.sceneId == 36 ) {
+			Integer button = 3
+            def patchButton = button + 8
+			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button Click-Hold Stopped" )
             }
     else if ( cmd.sceneId == 41 ) {
         	Integer button = 4
@@ -206,12 +250,26 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 43 ) {
         	Integer button = 4
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start - held" )
+        	log.debug( "Button $button Hold start" )
+            }
+    else if  ( cmd.sceneId == 44 ) {
+			Integer button = 4
+            def patchButton = button + 8
+			sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 45 ) {
         	Integer button = 4
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
+            }
+    else if  ( cmd.sceneId == 46 ) {
+			Integer button = 4
+            def patchButton = button + 8
+			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
+			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button Click-Hold Stopped" )
             }
     else {
         	log.debug( "Commands and Button ID combinations unaccounted for happened" )
@@ -249,7 +307,7 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
     cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 21, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 22, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 24, size: 1).format()
-    cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 25, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 25, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 30, size: 1).format()
     
     delayBetween(cmds, 500)
