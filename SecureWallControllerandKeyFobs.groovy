@@ -15,6 +15,8 @@
  *  Author: AdamV
  *  Date: 2016-01-17
  *
+ *  
+ * Configuration code from Stuart Buchanan
  */
  
 metadata {
