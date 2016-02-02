@@ -11,11 +11,10 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
- *  Version 1.5
+ *  Version 1.6
  *  Author: AdamV
- *  Date: 2016-01-17
+ *  Date: 2016-02-02
  *
- *  
  * Configuration code from Stuart Buchanan
  */
  
@@ -77,10 +76,10 @@ def parse(String description) {
 
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
         def encapsulatedCommand = cmd.encapsulatedCommand([0x98: 1, 0x20: 1])
-				log.debug("UnsecuredCommand: $encapsulatedCommand")
+			//	log.debug("UnsecuredCommand: $encapsulatedCommand")
         // can specify command class versions here like in zwave.parse
         if (encapsulatedCommand) {
-        		log.debug("UnsecuredCommand: $encapsulatedCommand")
+        	//	log.debug("UnsecuredCommand: $encapsulatedCommand")
                 return zwaveEvent(encapsulatedCommand)
         }
 }
@@ -137,8 +136,8 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
    	else if  ( cmd.sceneId == 12 ) {
 			Integer button = 1
             def patchButton = button + 4
-			sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
             log.debug( "Button $button was Double Clicked" )
             }
    	else if  ( cmd.sceneId == 13 ) {
@@ -148,21 +147,23 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
     else if  ( cmd.sceneId == 14 ) {
 			Integer button = 1
-            def patchButton = button + 8
-			sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
-			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            def patchButton = button + 4
+			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
             log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 15 ) {
         	Integer button = 1
+            def patchButton = button + 8
+            sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
             }
     else if  ( cmd.sceneId == 16 ) {
 			Integer button = 1
             def patchButton = button + 8
-			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
-			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
             log.debug( "Button $button Click-Hold Stopped" )
             }
     else if  ( cmd.sceneId == 21 ) {
@@ -173,8 +174,8 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 22 ) {
 			Integer button = 2
             def patchButton = button + 4
-			sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
             log.debug( "Button $button was Double Clicked" )
             }
     else if  ( cmd.sceneId == 23 ) {
@@ -184,21 +185,23 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
     else if  ( cmd.sceneId == 24 ) {
 			Integer button = 2
-            def patchButton = button + 8
-			sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
-			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            def patchButton = button + 4
+			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
+            sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
             log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 25 ) {
         	Integer button = 2
+            def patchButton = button + 8
+            sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
             }
     else if  ( cmd.sceneId == 26 ) {
 			Integer button = 2
             def patchButton = button + 8
-			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
-			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
             log.debug( "Button $button Click-Hold Stopped" )
             }
 	else if  ( cmd.sceneId == 31 ) {
@@ -209,8 +212,8 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 32 ) {
 			Integer button = 3
             def patchButton = button + 4
-			sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
             log.debug( "Button $button was Double Clicked" )
             }
     else if  ( cmd.sceneId == 33 ) {
@@ -220,21 +223,23 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
     else if  ( cmd.sceneId == 34 ) {
 			Integer button = 3
-            def patchButton = button + 8
-			sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
-			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            def patchButton = button + 4
+			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
             log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 35 ) {
         	Integer button = 3
+            def patchButton = button + 8
+            sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
             }
     else if  ( cmd.sceneId == 36 ) {
 			Integer button = 3
             def patchButton = button + 8
-			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
-			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
             log.debug( "Button $button Click-Hold Stopped" )
             }
     else if ( cmd.sceneId == 41 ) {
@@ -245,8 +250,8 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     else if  ( cmd.sceneId == 42 ) {
 			Integer button = 4
             def patchButton = button + 4
-			sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
             log.debug( "Button $button was Double Clicked" )
             }
     else if  ( cmd.sceneId == 43 ) {
@@ -256,21 +261,23 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
     else if  ( cmd.sceneId == 44 ) {
 			Integer button = 4
-            def patchButton = button + 8
-			sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
-			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            def patchButton = button + 4
+			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $patchButton was held", isStateChange: true)
+            sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
             log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 45 ) {
         	Integer button = 4
+            def patchButton = button + 8
+            sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
         	log.debug( "Button $button Hold stop" )
             }
     else if  ( cmd.sceneId == 46 ) {
 			Integer button = 4
             def patchButton = button + 8
+            sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
 			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
-			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             log.debug( "Button $button Click-Hold Stopped" )
             }
     else {
@@ -279,20 +286,10 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
 }
  
 
-/*
-def zwaveEvent(physicalgraph.zwave.Command cmd) {
-	[ descriptionText: "$device.displayName: $cmd", linkText:device.displayName, displayed: false ]
-	log.debug "command event: $cmd"
-}
-*/
-
-
 
   def configure() {
     
-    
-    
-    
+ 
     def commands = [ ]
 			log.debug "Resetting Sensor Parameters to SmartThings Compatible Defaults"
 	def cmds = []
