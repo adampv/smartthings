@@ -10,6 +10,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
+ * 
  */
 metadata {
 	definition (name: "Living Connect Radiator Thermostat", namespace: "Danfoss", author: "AdamV") {
@@ -39,34 +40,7 @@ metadata {
 		status "heat"			: "command: 4003, payload: 01"
 		status "cool"			: "command: 4003, payload: 02"
 		status "auto"			: "command: 4003, payload: 03"
-		status "emergencyHeat"	: "command: 4003, payload: 04"
 
-		status "fanAuto"		: "command: 4403, payload: 00"
-		status "fanOn"			: "command: 4403, payload: 01"
-		status "fanCirculate"	: "command: 4403, payload: 06"
-
-		status "heat 60"        : "command: 4303, payload: 01 09 3C"
-		status "heat 68"        : "command: 4303, payload: 01 09 44"
-		status "heat 72"        : "command: 4303, payload: 01 09 48"
-
-		status "cool 72"        : "command: 4303, payload: 02 09 48"
-		status "cool 76"        : "command: 4303, payload: 02 09 4C"
-		status "cool 80"        : "command: 4303, payload: 02 09 50"
-
-		status "temp 58"        : "command: 3105, payload: 01 2A 02 44"
-		status "temp 62"        : "command: 3105, payload: 01 2A 02 6C"
-		status "temp 70"        : "command: 3105, payload: 01 2A 02 BC"
-		status "temp 74"        : "command: 3105, payload: 01 2A 02 E4"
-		status "temp 78"        : "command: 3105, payload: 01 2A 03 0C"
-		status "temp 82"        : "command: 3105, payload: 01 2A 03 34"
-
-		status "idle"			: "command: 4203, payload: 00"
-		status "heating"		: "command: 4203, payload: 01"
-		status "cooling"		: "command: 4203, payload: 02"
-		status "fan only"		: "command: 4203, payload: 03"
-		status "pending heat"	: "command: 4203, payload: 04"
-		status "pending cool"	: "command: 4203, payload: 05"
-		status "vent economizer": "command: 4203, payload: 06"
 
 		// reply messages
 		reply "2502": "command: 2503, payload: FF"
@@ -91,7 +65,7 @@ metadata {
 			tileAttribute("device.heatingSetpoint", key: "VALUE_CONTROL") {
 				attributeState "heat", action:"quickSetHeat"
 			}
-		} 
+        }
 
 /*        
 		valueTile("temperature", "device.temperature", width: 2, height: 2) {
@@ -318,10 +292,24 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd)
 {
-        state.count = state.count + 1
+       // state.count = state.count + 1
         log.debug("Device Wakeup: $cmd")
+        def newSetPoint = state.setPoint
+        def result = []
+        
+        result << createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)
+        result << zwave.wakeUpV2.wakeUpNoMoreInformation().format()
+        result << setHeatingSetpoint(newSetPoint, 1000)
+        result << log.debug("sent response")
+        
+        delayBetween([result], 2000)
+        
+        
      //   def result = [createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)]
-	def result = []
+	
+   // if (state.count == 2){
+    
+  //  def result = []
         // Only ask for battery if we haven't had a BatteryReport in a while
     //    if (!state.lastbatt || (new Date().time) - state.lastbatt > 24*60*60*1000) {
     //            result << response(zwave.batteryV1.batteryGet())
@@ -332,19 +320,32 @@ def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd)
      //   result << response(zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: deviceScale, precision: p, scaledValue: state.setPoint))
      //   result << response(zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1))
      //   result << response(setHeatingSetpoint(state.setPoint, 1000))
-        result << response("delay 1000")
-        result << setHeatingSetpoint(state.setPoint, 1000)
-        result << response("delay 1000")
+     //   result << response("delay 1000")
+      //  result << setHeatingSetpoint(state.setPoint, 1000)
+       // result << response("delay 1000")
       //  setHeatingSetpoint(state.setPoint, 1000)
-      //  result << response(zwave.wakeUpV2.wakeUpNoMoreInformation())
+       // result << response(zwave.wakeUpV2.wakeUpNoMoreInformation())
         // setHeatingSetpoint(state.setPoint, 1000)
-        
-        if (state.count == 3){
+       //		def deviceScale = state.scale ?: 1
+		//	def deviceScaleString = deviceScale == 2 ? "C" : "F"
+    	//	def locationScale = getTemperatureScale()
+		//	def p = (state.precision == null) ? 1 : state.precision
+
+
+     /*   if (state.count == 3){
         result
+        log.debug("response fired count: $state.count")
         state.count = 0
         }
-        poll()
+        */
+    //    poll()
+    //log.debug("response fired count: $state.count")
+    //state.count = 0
+   //}
+   
+ //  result
 }
+
 
 def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport cmd) {
 	def map = [:]
