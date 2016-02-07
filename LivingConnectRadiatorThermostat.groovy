@@ -144,10 +144,11 @@ metadata {
 	}
 }
 
-
+/*
 def parse(String description)
 {
-	def map = createEvent(zwaveEvent(zwave.parse(description, [0x43:2, 0x31: 3])))
+	log.debug("Raw description: $description")
+    def map = createEvent(zwaveEvent(zwave.parse(description, [0x43:2, 0x31: 3])))
 	if (!map) {
 		return null
 	}
@@ -187,6 +188,24 @@ def parse(String description)
 	log.debug "Parse returned $result"
 	result
 }
+*/
+def parse(String description) {
+	state.count = 0
+    def results = []
+    // log.debug("RAW command: $description")
+	if (description.startsWith("Err")) {
+		log.debug("An error has occurred")
+		} 
+    else {
+       
+       	def cmd = zwave.parse(description, [0x43:2, 0x31: 3])
+        // log.debug "Parsed Command: $cmd"
+        if (cmd) {
+       	results = zwaveEvent(cmd)
+		}
+    }
+}
+
 
 // Event Generation
 def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpointReport cmd)
@@ -211,6 +230,7 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatsetpointv2.ThermostatSetpo
 	state.scale = cmd.scale
 	state.precision = cmd.precision
 	map
+    sendEvent(map)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.sensormultilevelv3.SensorMultilevelReport cmd)
@@ -298,15 +318,31 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
 
 def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd)
 {
-        def result = [createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)]
-
+        state.count = state.count + 1
+        log.debug("Device Wakeup: $cmd")
+     //   def result = [createEvent(descriptionText: "${device.displayName} woke up", isStateChange: false)]
+	def result = []
         // Only ask for battery if we haven't had a BatteryReport in a while
-        if (!state.lastbatt || (new Date().time) - state.lastbatt > 24*60*60*1000) {
-                result << response(zwave.batteryV1.batteryGet())
-                result << response("delay 1200")  // leave time for device to respond to batteryGet
-        }
-        result << response(zwave.wakeUpV1.wakeUpNoMoreInformation())
+    //    if (!state.lastbatt || (new Date().time) - state.lastbatt > 24*60*60*1000) {
+    //            result << response(zwave.batteryV1.batteryGet())
+    //            result << response("delay 1200")  // leave time for device to respond to batteryGet
+    //    }
+    //    def deviceScale = state.scale ?: 1
+     //   def p = (state.precision == null) ? 1 : state.precision
+     //   result << response(zwave.thermostatSetpointV1.thermostatSetpointSet(setpointType: 1, scale: deviceScale, precision: p, scaledValue: state.setPoint))
+     //   result << response(zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1))
+     //   result << response(setHeatingSetpoint(state.setPoint, 1000))
+        result << response("delay 1000")
+        result << setHeatingSetpoint(state.setPoint, 1000)
+        result << response("delay 1000")
+      //  setHeatingSetpoint(state.setPoint, 1000)
+      //  result << response(zwave.wakeUpV2.wakeUpNoMoreInformation())
+        // setHeatingSetpoint(state.setPoint, 1000)
+        
+        if (state.count == 3){
         result
+        state.count = 0
+        }
         poll()
 }
 
@@ -382,10 +418,9 @@ def zwaveEvent(physicalgraph.zwave.Command cmd) {
 // Command Implementations
 def poll() {
 	delayBetween([
-		zwave.sensorMultilevelV3.sensorMultilevelGet().format(), // current temperature
-		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 1).format(),
-		zwave.thermostatSetpointV1.thermostatSetpointGet(setpointType: 2).format(),
-		zwave.thermostatModeV2.thermostatModeGet().format(),
+		// zwave.sensorMultilevelV3.sensorMultilevelGet().format(), // current temperature
+		zwave.thermostatSetpointV2.thermostatSetpointGet(setpointType: 1).format(),
+		zwave.thermostatSetpointV2.thermostatSetpointGet(setpointType: 2).format(),
 		zwave.thermostatOperatingStateV1.thermostatOperatingStateGet().format()
 	], 2300)
 }
@@ -396,11 +431,15 @@ def quickSetHeat(upDown) {
     if (change == 1) {
     	def newSetPoint = latest + 1
         log.debug("New Set Point: $newSetPoint")
+		state.setPoint = newSetPoint
+        log.debug("New State Set Point: $state.setPoint")
     	setHeatingSetpoint(newSetPoint, 1000)
     }
     else if (change == 0) {
     	def newSetPoint = latest - 1
         log.debug("New Set Point: $newSetPoint")
+        state.setPoint = newSetPoint
+        log.debug("New State Set Point: $state.setPoint")
     	setHeatingSetpoint(newSetPoint, 1000)
     }
 	//setHeatingSetpoint(degrees, 1000)
@@ -466,9 +505,8 @@ def setCoolingSetpoint(Double degrees, Integer delay = 30000) {
 
 def configure() {
 	delayBetween([
-    	zwave.wakeUpV1.wakeUpIntervalSet(seconds:10, nodeid:zwaveHubNodeId).format(),
-		zwave.thermostatModeV2.thermostatModeSupportedGet().format(),
-		zwave.thermostatFanModeV3.thermostatFanModeSupportedGet().format(),
+    	zwave.wakeUpV2.wakeUpIntervalSet(seconds:30, nodeid:zwaveHubNodeId).format(),
+		//zwave.thermostatModeV2.thermostatModeSupportedGet().format(),
 		zwave.associationV1.associationSet(groupingIdentifier:1, nodeId:[zwaveHubNodeId]).format()
 	], 2300)
 }
