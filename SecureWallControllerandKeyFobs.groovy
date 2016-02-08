@@ -11,7 +11,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
- *  Version 1.6
+ *  Version 1.6.1
  *  Author: AdamV
  *  Date: 2016-02-02
  *
@@ -293,6 +293,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     def commands = [ ]
 			log.debug "Resetting Sensor Parameters to SmartThings Compatible Defaults"
 	def cmds = []
+    cmds << zwave.associationV1.associationSet(groupingIdentifier: 1, nodeId: zwaveHubNodeId).format()
     cmds << zwave.associationV1.associationSet(groupingIdentifier: 2, nodeId: zwaveHubNodeId).format()
     cmds << zwave.associationV1.associationSet(groupingIdentifier: 3, nodeId: zwaveHubNodeId).format()
     cmds << zwave.associationV1.associationSet(groupingIdentifier: 4, nodeId: zwaveHubNodeId).format()
@@ -306,7 +307,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 21, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 22, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 24, size: 1).format()
-    cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 25, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 25, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 30, size: 1).format()
     
     delayBetween(cmds, 500)
