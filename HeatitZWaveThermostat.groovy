@@ -17,7 +17,7 @@
  
  preferences {
             
-            def myOptions = ["F - Floor mode", "A - Room temperature mode", "AF - Room mode", "A2 - Room temperature mode", "P - Power regulator mode", "FP - Floor mode with minimum power limitation"]
+            def myOptions = ["F - Floor mode", "A - Room temperature mode", "AF - Room mode w/floor limitations", "A2 - Room temperature mode (external)", "P - Power regulator mode", "FP - Floor mode with minimum power limitation"]
 			input "tempSen", 
             "enum", 
             title: "Select Temperature Sensor Mode",
@@ -876,10 +876,10 @@ def configure() {
         if (tempSensorMode == "A - Room temperature mode"){
         tempModeParam = 1
         }
-        if (tempSensorMode == "AF - Room mode"){
+        if (tempSensorMode == "AF - Room mode w/floor limitations"){
         tempModeParam = 2
         }
-        if (tempSensorMode == "A2 - Room temperature mode"){
+        if (tempSensorMode == "A2 - Room temperature mode (external)"){
         tempModeParam = 3
         }
        	if (tempSensorMode == "P - Power regulator mode"){
