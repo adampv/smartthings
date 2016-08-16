@@ -10,7 +10,7 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- * V0.9 19/04/2016
+ * V0.9.1 16/08/2016
  *
  *
  */
@@ -79,6 +79,25 @@
 			required: false,
             displayDuringSetup: false
             
+            input "PLo",
+        	"number",
+            range: "0..9",
+            title: "PLo: FP-mode P setting",
+            description: "FP-mode P setting (0 - 9)",
+			defaultValue: 0,
+			required: false,
+            displayDuringSetup: false
+            
+            def pOptions = ["0%", "10%", "20%", "30%", "40%", "50%", "60%", "70%", "80%", "90%", "100%"]
+            input "PSet",
+        	"enum",
+            //range: "0..100",
+            title: "PSetting",
+            description: "Power Regulator setting (0 - 100%)",
+			defaultValue: "20%",
+			required: false,
+            options: pOptions,
+            displayDuringSetup: false
            
 }
 /*    
@@ -93,6 +112,7 @@ metadata {
 		capability "Temperature Measurement"
 		//capability "Relative Humidity Measurement"
 		capability "Thermostat"
+        capability "Thermostat Mode"
 		capability "Configuration"
 		capability "Polling"
 		capability "Sensor"
@@ -174,7 +194,7 @@ metadata {
   			tileAttribute("device.thermostatOperatingState", key: "OPERATING_STATE") {
     		attributeState("idle", backgroundColor:"#44b621")
   			attributeState("heating", backgroundColor:"#bc2323")
-            attributeState("vent economizer", backgroundColor:"#ffa81e")
+            attributeState("energySaveHeat", backgroundColor:"#ffa81e")
   		}
   			tileAttribute("device.thermostatMode", key: "THERMOSTAT_MODE") {
     		attributeState("off", label:'${name}', action:"switchMode", nextState:"heat")
@@ -210,11 +230,11 @@ metadata {
 			state "off", label:'${name}', action:"switchMode", nextState:"to_heat"
 			state "heat", label:'${name}', action:"switchMode", nextState:"energySaveHeat"
 			//state "cool", label:'${name}', action:"switchMode", nextState:"..."
-			state "auto", label:'${name}', action:"switchMode", nextState:"energySaveHeat"
-			state "emergency heat", label:'${name}', action:"switchMode", nextState:"energySaveHeat"
-			state "to_heat", label: "heat", action:"switchMode", nextState:"energySaveHeat"
+			// state "auto", label:'${name}', action:"switchMode", nextState:"energySaveHeat"
+			//state "emergency heat", label:'${name}', action:"switchMode", nextState:"energySaveHeat"
+			//state "to_heat", label: "heat", action:"switchMode", nextState:"energySaveHeat"
 			//state "to_cool", label: "cool", action:"switchMode", nextState:"..."
-			state "energySaveHeat", label: "eco heat", action:"off", nextState:"off"
+			state "energySaveHeat", label: "eco heat", action:"switchMode", nextState:"off"
 		}
         /*
 		standardTile("fanMode", "device.thermostatFanMode", inactiveLabel: false, decoration: "flat") {
@@ -460,7 +480,7 @@ def zwaveEvent(physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeRepor
 			break
         case physicalgraph.zwave.commands.thermostatmodev2.ThermostatModeReport.MODE_ENERGY_SAVE_HEAT:
 			map.value = "energySaveHeat"
-            sendEvent(name: "thermostatOperatingState", value: "vent economizer")
+            sendEvent(name: "thermostatOperatingState", value: "energySaveHeat")
 			break
 	}
 	map.name = "thermostatMode"
@@ -517,7 +537,7 @@ def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport 
         else if (cmd.configurationValue == [0, 11]){
             log.debug("Current Mode is Energy Save Heat")
             sendEvent(name: "thermostatMode", value: "energySaveHeat")
-            sendEvent(name: "thermostatOperatingState", value: "vent economizer")
+            sendEvent(name: "thermostatOperatingState", value: "energySaveHeat")
         }
 	}
     if (cmd.parameterNumber == 2){
@@ -627,7 +647,7 @@ def zwaveEvent(physicalgraph.zwave.commands.configurationv2.ConfigurationReport 
 	}
     if (cmd.parameterNumber == 12){
     	
-       def val = cmd.configurationValue[1]
+       def val = cmd.configurationValue[0]
        def diff = val * 10
        log.debug("P (Power regulator) is $diff %")
 	}
@@ -912,6 +932,51 @@ def configure() {
             floorSensParam = 5
             }
         }
+   	def powerLo = 0
+    	if (PLo){
+        	powerLo = PLo  
+        }
+    def powerSet = 0
+    def powerSetPer = ""
+    	if (PSet){
+        powerSetPer = PSet
+            if (powerSetPer == "0%"){
+        	powerSet = 0
+       		}
+            if (powerSetPer == "10%"){
+        	powerSet = 1
+       		}
+            if (powerSetPer == "20%"){
+        	powerSet = 2
+       		}
+            if (powerSetPer == "30%"){
+        	powerSet = 3
+            log.debug("powerset 3")
+       		}
+            if (powerSetPer == "40%"){
+        	powerSet = 4
+       		}
+            if (powerSetPer == "50%"){
+        	powerSet = 5
+       		}
+            if (powerSetPer == "60%"){
+        	powerSet = 6
+       		}
+            if (powerSetPer == "70%"){
+        	powerSet = 7
+       		}
+            if (powerSetPer == "80%"){
+        	powerSet = 8
+       		}
+            if (powerSetPer == "90%"){
+        	powerSet = 9
+       		}
+            if (powerSetPer == "100%"){
+        	powerSet = 10
+       		}
+        // DO LIKE LIST INSTEAD 0, 10, 20, 30 etc so no issues powerSetRound = Math.floor(powerSet)
+        // log.debug("floor: $powerSetRound")
+        }
 
     
 	delayBetween([
@@ -924,7 +989,8 @@ def configure() {
        	zwave.configurationV2.configurationSet(configurationValue: [floorMaxX, floorMaxY], parameterNumber: 6, size: 2).format(),
         zwave.configurationV2.configurationSet(configurationValue: [AirMinX, AirMinY], parameterNumber: 7, size: 2).format(),
         zwave.configurationV2.configurationSet(configurationValue: [AirMaxX, AirMaxY], parameterNumber: 8, size: 2).format(),
-        //zwave.configurationV2.configurationSet(configurationValue: [1, 144], parameterNumber: 6, size: 2).format(),
+        zwave.configurationV2.configurationSet(configurationValue: [powerLo], parameterNumber: 9, size: 1).format(),
+        zwave.configurationV2.configurationSet(configurationValue: [powerSet], parameterNumber: 12, size: 1).format(),//zwave.configurationV2.configurationSet(configurationValue: [1, 144], parameterNumber: 6, size: 2).format(),
         //zwave.configurationV2.configurationSet(configurationValue: [1, 144], parameterNumber: 6, size: 2).format(),
         zwave.thermostatModeV2.thermostatModeSupportedGet().format(),
         poll()
@@ -978,7 +1044,7 @@ def switchMode() {
     else if (currentMode == "heat"){
     	def nextMode = "energySaveHeat"
         sendEvent(name: "thermostatMode", value: "energySaveHeat")
-        sendEvent(name: "thermostatOperatingState", value: "vent economizer")
+        sendEvent(name: "thermostatOperatingState", value: "energySaveHeat")
         delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 11).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format(),
