@@ -113,6 +113,8 @@ metadata {
 		//capability "Relative Humidity Measurement"
 		capability "Thermostat"
         capability "Thermostat Mode"
+        capability "Thermostat Heating Setpoint"
+        capability "Thermostat Setpoint"
 		capability "Configuration"
 		capability "Polling"
 		capability "Sensor"
