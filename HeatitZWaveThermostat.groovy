@@ -10,9 +10,12 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- * V0.9.1 16/08/2016
+ * V0.9.2 14/09/2016
  *
  *
+ * Changelog:
+ *
+ * 0.9.2 - Fixed an issue preventing some commands being fired when they are not triggered from the DTH UI
  */
  
  preferences {
@@ -811,6 +814,7 @@ def poll() {
 		zwave.sensorMultilevelV5.sensorMultilevelGet().format(), // current temperature
 		zwave.thermostatSetpointV2.thermostatSetpointGet(setpointType: 1).format(),
 		zwave.thermostatSetpointV2.thermostatSetpointGet(setpointType: 2).format(),
+        zwave.thermostatModeV2.thermostatModeGet().format(),
         zwave.configurationV2.configurationGet(parameterNumber: 1).format(),
         zwave.configurationV2.configurationGet(parameterNumber: 2).format(),
         zwave.configurationV2.configurationGet(parameterNumber: 3).format(),
@@ -822,8 +826,7 @@ def poll() {
         zwave.configurationV2.configurationGet(parameterNumber: 9).format(),
         zwave.configurationV2.configurationGet(parameterNumber: 10).format(),
         zwave.configurationV2.configurationGet(parameterNumber: 11).format(),
-        zwave.configurationV2.configurationGet(parameterNumber: 12).format(),
-		zwave.thermostatModeV2.thermostatModeGet().format()
+        zwave.configurationV2.configurationGet(parameterNumber: 12).format()
         
         // zwave.basicV1.basicGet().format(),
 		// zwave.thermostatOperatingStateV2.thermostatOperatingStateGet().format()
@@ -1146,24 +1149,34 @@ def setThermostatFanMode(String value) {
 }
 */
 def off() {
-	delayBetween([
+        delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 0).format(),
-		zwave.thermostatModeV2.thermostatModeGet().format()
-	], standardDelay)
+		zwave.thermostatModeV2.thermostatModeGet().format(),
+        sendEvent(name: "thermostatMode", value: "off"),
+        sendEvent(name: "thermostatOperatingState", value: "idle"),
+        poll()
+	], 650)
+    	
 }
 
 def heat() {
-	delayBetween([
+        delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 1).format(),
-		zwave.thermostatModeV2.thermostatModeGet().format()
-	], standardDelay)
+		zwave.thermostatModeV2.thermostatModeGet().format(),
+        sendEvent(name: "thermostatMode", value: "heat"),
+        sendEvent(name: "thermostatOperatingState", value: "heating"),
+        poll()
+	], 650)
 }
 
 def emergencyHeat() {
-	delayBetween([
-		zwave.thermostatModeV2.thermostatModeSet(mode: 4).format(),
-		zwave.thermostatModeV2.thermostatModeGet().format()
-	], standardDelay)
+        delayBetween([
+		zwave.thermostatModeV2.thermostatModeSet(mode: 11).format(),
+		zwave.thermostatModeV2.thermostatModeGet().format(),
+        sendEvent(name: "thermostatMode", value: "energySaveHeat"),
+        sendEvent(name: "thermostatOperatingState", value: "energySaveHeat"),
+        poll()
+	], 650)
 }
 /*
 def cool() {
