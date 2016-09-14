@@ -1,5 +1,5 @@
 /**
- *  Copyright 2015 AdamV
+ *  Copyright 2016 AdamV
  *
  *  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except
  *  in compliance with the License. You may obtain a copy of the License at:
@@ -11,9 +11,9 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
- *  Version 1.6.2
+ *  Version 1.7
  *  Author: AdamV
- *  Date: 2016-03-23
+ *  Date: 2016-09-14
  *
  * Configuration code from Stuart Buchanan
  */
@@ -26,6 +26,11 @@ metadata {
 		capability "Configuration" 
        	capability "Refresh"
 
+		command "describeAttributes"
+        
+		attribute "numberOfButtons", "number"
+        attribute "Button Events", "enum", ["#1 pushed", "#1 held", "#1 double clicked", "#1 click held", "#1 hold released", "#1 click hold released", "#2 pushed", "#2 held", "#2 double clicked", "#2 click held", "#2 hold released", "#2 click hold released", "#3 pushed", "#3 held", "#3 double clicked", "#3 click held", "#3 hold released", "#3 click hold released", "#4 pushed", "#4 held", "#4 double clicked", "#4 click held", "#4 hold released", "#4 click hold released"]
+        attribute "button", "enum", ["pushed", "held", "double clicked", "click held"]
         
 		fingerprint deviceId: "0x1801", inClusters: "0x5E, 0x70, 0x85, 0x2D, 0x8E, 0x80, 0x84, 0x8F, 0x5A, 0x59, 0x5B, 0x73, 0x86, 0x72", outClusters: "0x20, 0x5B, 0x26, 0x27, 0x2B, 0x60"
    		fingerprint deviceId: "0x1202", inClusters: "0x5E, 0x8F, 0x73, 0x98, 0x86, 0x72, 0x70, 0x85, 0x2D, 0x8E, 0x80, 0x84, 0x5A, 0x59, 0x5B", outClusters:  "0x20, 0x5B, 0x26, 0x27, 0x2B, 0x60"												
@@ -37,7 +42,19 @@ metadata {
         // need to redo simulator commands
 
 	}
-	tiles {
+    tiles (scale: 2){
+		
+        multiAttributeTile(name:"button", type:"generic", width:6, height:4) {
+  			tileAttribute("device.button", key: "PRIMARY_CONTROL"){
+    		attributeState "default", label:'Controller', backgroundColor:"#44b621", icon:"st.Home.home30"
+            attributeState "held", label: "holding", backgroundColor: "#C390D4"
+  			}
+            tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
+			attributeState "battery", label:'${currentValue} % battery'
+            }
+            
+        }
+	/*tiles {
 		standardTile("button", "device.button", width: 2, height: 2) {
 			state "default", label: "", icon: "st.Home.home30", backgroundColor: "#ffffff"
             state "held", label: "holding", icon: "st.Home.home30", backgroundColor: "#C390D4"
@@ -46,8 +63,8 @@ metadata {
          	tileAttribute ("device.battery", key: "PRIMARY_CONTROL"){
                         state "battery", label:'${currentValue}% battery', unit:""
         	}
-        }
-        standardTile("configure", "device.button", width: 1, height: 1, decoration: "flat") {
+        }*/
+        valueTile("configure", "device.button", width: 2, height: 2, decoration: "flat") {
 			state "default", label: "configure", backgroundColor: "#ffffff", action: "configure"
         }
         
@@ -59,7 +76,7 @@ metadata {
 
 def parse(String description) {
 	def results = []
-    // log.debug("RAW command: $description")
+  //   log.debug("RAW command: $description")
 	if (description.startsWith("Err")) {
 		log.debug("An error has occurred")
 		} 
@@ -70,16 +87,30 @@ def parse(String description) {
         if (cmd) {
        	results = zwaveEvent(cmd)
 		}
+        if ( !state.numberOfButtons ) {
+    	state.numberOfButtons = "4"
+        createEvent(name: "numberOfButtons", value: "4", displayed: false)
+
+  		}
     }
 }
   
+def describeAttributes(payload) {
+    	payload.attributes = [
+        [ name: "holdLevel",    type: "number",    range:"1..100", capability: "button" ],
+       	[ name: "Button Events",    type: "enum",    options: ["#1 pushed", "#1 held", "#1 double clicked", "#1 click held", "#1 hold released", "#1 click hold released", "#2 pushed", "#2 held", "#2 double clicked", "#2 click held", "#2 hold released", "#2 click hold released", "#3 pushed", "#3 held", "#3 double clicked", "#3 click held", "#3 hold released", "#3 click hold released", "#4 pushed", "#4 held", "#4 double clicked", "#4 click held", "#4 hold released", "#4 click hold released"], momentary: true, capability: "button" ],
+    	[ name: "button",    type: "enum",    options: ["pushed", "held", "double clicked", "click held"],  capability: "button", momentary: true ],
+        ]
+    	return null
+		}	
+        
 
 def zwaveEvent(physicalgraph.zwave.commands.securityv1.SecurityMessageEncapsulation cmd) {
         def encapsulatedCommand = cmd.encapsulatedCommand([0x98: 1, 0x20: 1])
 			//	log.debug("UnsecuredCommand: $encapsulatedCommand")
         // can specify command class versions here like in zwave.parse
         if (encapsulatedCommand) {
-        	//	log.debug("UnsecuredCommand: $encapsulatedCommand")
+       // 	log.debug("UnsecuredCommand: $encapsulatedCommand")
                 return zwaveEvent(encapsulatedCommand)
         }
 }
@@ -131,18 +162,21 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     if ( cmd.sceneId == 11 ) {
         	Integer button = 1
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was pushed" )
+        	sendEvent(name: "Button Events", value: "#1 pushed", descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button was pushed" )
             }
    	else if  ( cmd.sceneId == 12 ) {
 			Integer button = 1
             def patchButton = button + 4
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button double clicked", descriptionText: "$device.displayName button $button was Double Clicked", isStateChange: true)
             log.debug( "Button $button was Double Clicked" )
             }
    	else if  ( cmd.sceneId == 13 ) {
         	Integer button = 1
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button held", descriptionText: "$device.displayName button $button was held", isStateChange: true)
             log.debug( "Button $button Hold start" )
             }
     else if  ( cmd.sceneId == 14 ) {
@@ -150,6 +184,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             def patchButton = button + 4
 			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button click held", descriptionText: "$device.displayName button $button was Click Held", isStateChange: true)
             log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 15 ) {
@@ -157,37 +192,43 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             def patchButton = button + 8
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
-        	log.debug( "Button $button Hold stop" )
+        	sendEvent(name: "Button Events", value: "#$button hold released", descriptionText: "$device.displayName button $button was Released", isStateChange: true)
+            log.debug( "Button $button Hold stop" )
             }
     else if  ( cmd.sceneId == 16 ) {
 			Integer button = 1
             def patchButton = button + 8
 			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button click hold released", descriptionText: "$device.displayName button $button was Clicked, held and then Released", isStateChange: true)
             log.debug( "Button $button Click-Hold Stopped" )
             }
     else if  ( cmd.sceneId == 21 ) {
         	Integer button = 2
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was pushed" )
+        	sendEvent(name: "Button Events", value: "#$button pushed", descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button was pushed" )
             }
     else if  ( cmd.sceneId == 22 ) {
 			Integer button = 2
             def patchButton = button + 4
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button double clicked", descriptionText: "$device.displayName button $button was Double Clicked", isStateChange: true)
             log.debug( "Button $button was Double Clicked" )
             }
     else if  ( cmd.sceneId == 23 ) {
         	Integer button = 2
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start" )
+        	sendEvent(name: "Button Events", value: "#$button held", descriptionText: "$device.displayName button $button was held", isStateChange: true)
+            log.debug( "Button $button Hold start" )
             }
     else if  ( cmd.sceneId == 24 ) {
 			Integer button = 2
             def patchButton = button + 4
 			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
             sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button click held", descriptionText: "$device.displayName button $button was Click Held", isStateChange: true)
             log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 25 ) {
@@ -195,37 +236,43 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             def patchButton = button + 8
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
-        	log.debug( "Button $button Hold stop" )
+        	sendEvent(name: "Button Events", value: "#$button hold released", descriptionText: "$device.displayName button $button was Released", isStateChange: true)
+            log.debug( "Button $button Hold stop" )
             }
     else if  ( cmd.sceneId == 26 ) {
 			Integer button = 2
             def patchButton = button + 8
 			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button click hold released", descriptionText: "$device.displayName button $button was Clicked, held and then Released", isStateChange: true)
             log.debug( "Button $button Click-Hold Stopped" )
             }
 	else if  ( cmd.sceneId == 31 ) {
         	Integer button = 3
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was pushed" )
+        	sendEvent(name: "Button Events", value: "#$button pushed", descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button was pushed" )
             }
     else if  ( cmd.sceneId == 32 ) {
 			Integer button = 3
             def patchButton = button + 4
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button double clicked", descriptionText: "$device.displayName button $button was Double Clicked", isStateChange: true)
             log.debug( "Button $button was Double Clicked" )
             }
     else if  ( cmd.sceneId == 33 ) {
         	Integer button = 3
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start" )
+        	sendEvent(name: "Button Events", value: "#$button held", descriptionText: "$device.displayName button $button was held", isStateChange: true)
+            log.debug( "Button $button Hold start" )
             }
     else if  ( cmd.sceneId == 34 ) {
 			Integer button = 3
             def patchButton = button + 4
 			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button click held", descriptionText: "$device.displayName button $button was Click Held", isStateChange: true)
             log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 35 ) {
@@ -233,37 +280,43 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             def patchButton = button + 8
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
-        	log.debug( "Button $button Hold stop" )
+        	sendEvent(name: "Button Events", value: "#$button hold released", descriptionText: "$device.displayName button $button was Released", isStateChange: true)
+            log.debug( "Button $button Hold stop" )
             }
     else if  ( cmd.sceneId == 36 ) {
 			Integer button = 3
             def patchButton = button + 8
 			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button click hold released", descriptionText: "$device.displayName button $button was Clicked, held and then Released", isStateChange: true)
             log.debug( "Button $button Click-Hold Stopped" )
             }
     else if ( cmd.sceneId == 41 ) {
         	Integer button = 4
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	log.debug( "Button $button was pushed" )
+        	sendEvent(name: "Button Events", value: "#$button pushed", descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
+            log.debug( "Button $button was pushed" )
             }
     else if  ( cmd.sceneId == 42 ) {
 			Integer button = 4
             def patchButton = button + 4
 			sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "doubleClick", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button was Double Clicked", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button double clicked", descriptionText: "$device.displayName button $button was Double Clicked", isStateChange: true)
             log.debug( "Button $button was Double Clicked" )
             }
     else if  ( cmd.sceneId == 43 ) {
         	Integer button = 4
             sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
-        	log.debug( "Button $button Hold start" )
+        	sendEvent(name: "Button Events", value: "#$button held", descriptionText: "$device.displayName button $button was held", isStateChange: true)
+            log.debug( "Button $button Hold start" )
             }
     else if  ( cmd.sceneId == 44 ) {
 			Integer button = 4
             def patchButton = button + 4
 			sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $patchButton was held", isStateChange: true)
             sendEvent(name: "button", value: "clickHoldStart", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Started", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button click held", descriptionText: "$device.displayName button $button was Click Held", isStateChange: true)
             log.debug( "Button $button Click-Hold Started" )
             }
    	else if  ( cmd.sceneId == 45 ) {
@@ -271,13 +324,15 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             def patchButton = button + 8
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
             sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
-        	log.debug( "Button $button Hold stop" )
+        	sendEvent(name: "Button Events", value: "#$button hold released", descriptionText: "$device.displayName button $button was Released", isStateChange: true)
+            log.debug( "Button $button Hold stop" )
             }
     else if  ( cmd.sceneId == 46 ) {
 			Integer button = 4
             def patchButton = button + 8
             sendEvent(name: "button", value: "held", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
 			sendEvent(name: "button", value: "clickHoldStop", data: [buttonNumber: button], descriptionText: "$device.displayName Button $button Click-Hold Stopped", isStateChange: true)
+            sendEvent(name: "Button Events", value: "#$button click hold released", descriptionText: "$device.displayName button $button was Clicked, held and then Released", isStateChange: true)
             log.debug( "Button $button Click-Hold Stopped" )
             }
     else {
@@ -307,7 +362,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 21, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 22, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 24, size: 1).format()
-    cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 25, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 25, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 30, size: 1).format()
     
     delayBetween(cmds, 500)
