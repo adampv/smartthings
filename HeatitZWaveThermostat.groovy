@@ -10,11 +10,12 @@
  *  on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License
  *  for the specific language governing permissions and limitations under the License.
  *
- * V0.9.2 14/09/2016
+ * V0.9.3 20/09/2016
  *
  *
  * Changelog:
  *
+ * 0.9.3 - Corrected the energySaveHeat Command so that you can specifically activate this from CoRE rules
  * 0.9.2 - Fixed an issue preventing some commands being fired when they are not triggered from the DTH UI
  */
  
@@ -125,6 +126,7 @@ metadata {
 		//attribute "thermostatFanState", "string"
 
 		command "switchMode"
+        command "energySaveHeat"
 		//command "switchFanMode"
         //command "quickSetCool"
         command "quickSetHeat"
@@ -1169,7 +1171,7 @@ def heat() {
 	], 650)
 }
 
-def emergencyHeat() {
+def energySaveHeat() {
         delayBetween([
 		zwave.thermostatModeV2.thermostatModeSet(mode: 11).format(),
 		zwave.thermostatModeV2.thermostatModeGet().format(),
