@@ -11,7 +11,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
- *  Version 1.7
+ *  Version 1.7.1
  *  Author: AdamV
  *  Date: 2016-09-14
  *
@@ -146,7 +146,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
         }
         // Store time of last battery update so we don't ask every wakeup, see WakeUpNotification handler
         state.lastbatt = new Date().time
-        createEvent(map)
+        sendEvent(map)
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd){
