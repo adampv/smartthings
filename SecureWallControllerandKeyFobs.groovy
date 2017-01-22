@@ -11,9 +11,9 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
- *  Version 1.7.1
+ *  Version 1.7.2
  *  Author: AdamV
- *  Date: 2016-09-14
+ *  Date: 2017-01-22
  *
  * Configuration code from Stuart Buchanan
  */
@@ -29,7 +29,7 @@ metadata {
 		command "describeAttributes"
         
 		attribute "numberOfButtons", "number"
-        attribute "Button Events", "enum", ["#1 pushed", "#1 held", "#1 double clicked", "#1 click held", "#1 hold released", "#1 click hold released", "#2 pushed", "#2 held", "#2 double clicked", "#2 click held", "#2 hold released", "#2 click hold released", "#3 pushed", "#3 held", "#3 double clicked", "#3 click held", "#3 hold released", "#3 click hold released", "#4 pushed", "#4 held", "#4 double clicked", "#4 click held", "#4 hold released", "#4 click hold released"]
+        attribute "ButtonEvents", "enum",  ["#1 pushed", "#1 held", "#1 double clicked", "#1 click held", "#1 hold released", "#1 click hold released", "#2 pushed", "#2 held", "#2 double clicked", "#2 click held", "#2 hold released", "#2 click hold released", "#3 pushed", "#3 held", "#3 double clicked", "#3 click held", "#3 hold released", "#3 click hold released", "#4 pushed", "#4 held", "#4 double clicked", "#4 click held", "#4 hold released", "#4 click hold released"]
         attribute "button", "enum", ["pushed", "held", "double clicked", "click held"]
         
 		fingerprint deviceId: "0x1801", inClusters: "0x5E, 0x70, 0x85, 0x2D, 0x8E, 0x80, 0x84, 0x8F, 0x5A, 0x59, 0x5B, 0x73, 0x86, 0x72", outClusters: "0x20, 0x5B, 0x26, 0x27, 0x2B, 0x60"
@@ -50,7 +50,7 @@ metadata {
             attributeState "held", label: "holding", backgroundColor: "#C390D4"
   			}
             tileAttribute ("device.battery", key: "SECONDARY_CONTROL") {
-			attributeState "battery", label:'${currentValue} % battery'
+			attributeState "batteryLevel", label:'${currentValue} % battery'
             }
             
         }
@@ -83,13 +83,13 @@ def parse(String description) {
     else {
        
        	def cmd = zwave.parse(description.replace("98C1", "9881"), [0x98: 1, 0x20: 1, 0x84: 1, 0x80: 1, 0x60: 3, 0x2B: 1, 0x26: 1])
-        // log.debug "Parsed Command: $cmd"
+        //log.debug "Parsed Command: $cmd"
         if (cmd) {
        	results = zwaveEvent(cmd)
 		}
         if ( !state.numberOfButtons ) {
-    	state.numberOfButtons = "4"
-        createEvent(name: "numberOfButtons", value: "4", displayed: false)
+    	state.numberOfButtons = "8"
+        createEvent(name: "numberOfButtons", value: "8", displayed: false)
 
   		}
     }
@@ -98,7 +98,7 @@ def parse(String description) {
 def describeAttributes(payload) {
     	payload.attributes = [
         [ name: "holdLevel",    type: "number",    range:"1..100", capability: "button" ],
-       	[ name: "Button Events",    type: "enum",    options: ["#1 pushed", "#1 held", "#1 double clicked", "#1 click held", "#1 hold released", "#1 click hold released", "#2 pushed", "#2 held", "#2 double clicked", "#2 click held", "#2 hold released", "#2 click hold released", "#3 pushed", "#3 held", "#3 double clicked", "#3 click held", "#3 hold released", "#3 click hold released", "#4 pushed", "#4 held", "#4 double clicked", "#4 click held", "#4 hold released", "#4 click hold released"], momentary: true, capability: "button" ],
+       	[ name: "ButtonEvents",    type: "enum",    options: ["#1 pushed", "#1 held", "#1 double clicked", "#1 click held", "#1 hold released", "#1 click hold released", "#2 pushed", "#2 held", "#2 double clicked", "#2 click held", "#2 hold released", "#2 click hold released", "#3 pushed", "#3 held", "#3 double clicked", "#3 click held", "#3 hold released", "#3 click hold released", "#4 pushed", "#4 held", "#4 double clicked", "#4 click held", "#4 hold released", "#4 click hold released"], momentary: true ],
     	[ name: "button",    type: "enum",    options: ["pushed", "held", "double clicked", "click held"],  capability: "button", momentary: true ],
         ]
     	return null
@@ -149,6 +149,7 @@ def zwaveEvent(physicalgraph.zwave.commands.batteryv1.BatteryReport cmd) {
         sendEvent(map)
 }
 
+
 def zwaveEvent(physicalgraph.zwave.commands.basicv1.BasicReport cmd){
         log.debug "basic event: $cmd.value"
 }
@@ -161,8 +162,8 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     
     if ( cmd.sceneId == 11 ) {
         	Integer button = 1
+            sendEvent(name: "ButtonEvents", value: "#$button pushed" as String, descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: button], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-        	sendEvent(name: "Button Events", value: "#1 pushed", descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
             log.debug( "Button $button was pushed" )
             }
    	else if  ( cmd.sceneId == 12 ) {
@@ -363,7 +364,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
     cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 22, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 24, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 25, size: 1).format()
-    cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 30, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 30, size: 1).format()
     
     delayBetween(cmds, 500)
 }
