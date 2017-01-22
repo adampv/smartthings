@@ -11,7 +11,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
- *  Version 0.9.0
+ *  Version 0.9.1
  *  Author: AdamV
  *  Date: 2016-09-10
  *
@@ -98,7 +98,7 @@ def parse(String description) {
 def describeAttributes(payload) {
     	payload.attributes = [
         [ name: "holdLevel",    type: "number",    range:"1..100", capability: "button" ],
-       	[ name: "buttonClicks",    type: "enum",    options: ["one click", "two clicks", "three clicks", "four clicks", "five clicks", "hold start", "hold release"], momentary: true, capability: "button" ],
+       	[ name: "buttonClicks",    type: "enum",    options: ["one click", "two clicks", "three clicks", "four clicks", "five clicks", "hold start", "hold release"], momentary: true ],
     	]
     	return null
 		}		  
