@@ -1,6 +1,7 @@
 /**
  * 
- *
+ * V2. Updated 6/2/2017
+ * - Updated Region so it works in UK & US
  *  
  *
  */
@@ -10,6 +11,14 @@
     //input("password", "password", title: "Password", description: "Your Foobot password")
     input("uuid", "text", title: "UUID", description: "The UUID of the exact Foobot that you would like information for")
     //input("APIKey", "text", title: "API Key", description: "The API Key that Foobot gave you")
+    def myOptions = ["EU", "US"]
+	input "region", 
+    "enum", 
+    title: "Select your region",
+    defaultValue: "EU",
+    required: true, 
+    options: myOptions, 
+    displayDuringSetup: true
 }
  
 metadata {
@@ -98,14 +107,23 @@ def poll() {
     
     def accessToken = getAPIKey()
     
-	//def params = "https://api.foobot.io/v2/owner/${settings.username}/device/?api_key=${accessToken}"
-    def params = "https://api.foobot.io/v2/device/${settings.uuid}/datapoint/0/last/0/?api_key=${accessToken}"
-    //[
-      //  uri:  'https://api.foobot.io',
-       // path: "/v2/owner/me@adamvine.co.uk/device/?api_key=eyJhbGciOiJIUzI1NiJ9.eyJncmFudGVlIjoibWVAYWRhbXZpbmUuY28udWsiLCJpYXQiOjE0NzgxMDY1MDksInZhbGlkaXR5IjotMSwianRpIjoiN2NjNGFhOWYtNjcxMS00YjM3LTkxZmMtODQ5YWU4MDY4YjM4IiwicGVybWlzc2lvbnMiOlsidXNlcjpyZWFkIiwiZGV2aWNlOnJlYWQiXSwicXVvdGEiOjIwMCwicmF0ZUxpbWl0Ijo1fQ.AFDvmgWonNSiNijN5PjsiXyVDdaRqZ8rl2MbfiMFoYw",
-       // headers: [Authorization : getApiAuth()] ,
-       // contentType: 'application/json'
-    //]
+    def regionVar = ""
+    def params = ""
+    
+    if (region){
+    
+    regionVar = region
+    
+    if (regionVar == "EU"){
+    	params = "https://api.foobot.io/v2/device/${settings.uuid}/datapoint/0/last/0/?api_key=${accessToken}"
+		}
+ 	if (regionVar == "US"){
+    	params = "https://api-us-east-1.foobot.io/v2/device/${settings.uuid}/datapoint/0/last/0/?api_key=${accessToken}"
+		}
+    }
+    
+	
+    
     try {
         httpGet(params) {resp ->
            resp.headers.each {
@@ -179,32 +197,6 @@ def poll() {
 
 def getApiAuth() {
 
-	/*	rest(
-		method: 'POST',
-		endpoint: "https://api.foobot.io",
-		path: "/v2/user/${settings.username}/login/",
-	//	query: [Content-Type: "application/json, Accept: "application/json;charset=UTF-8", X-API-KEY-TOKEN:"${settings.APIKey}", password:"${settings.APIKey}" ],
-		synchronous: true
-		)
-        
-    /*    
-        def params = [
-        uri:  'https://api.foobot.io',
-        path: "/v2/user/${settings.username}/login/",
-        headers: ["Content-Type": "application/json", "Accept": "application/json;charset=UTF-8", "X-API-KEY-TOKEN":"${settings.APIKey}"],
-		body: [format: 'json', body: '{"password":"${settings.APIKey}"}'],
-    	]
- 
-        try {
-        httpPostJson(params) {resp ->
-            log.debug "resp data: ${resp.data}"
-        }
-        
-       	} catch (e) {
-        log.error "error: $e"
-    	}
-      
-      return */
      }
 
     
