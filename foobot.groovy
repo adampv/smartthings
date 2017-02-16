@@ -46,8 +46,13 @@ metadata {
         
         multiAttributeTile(name:"pollution", type:"thermostat", width:6, height:4) {
             tileAttribute("device.pollution", key: "PRIMARY_CONTROL") {
-    			attributeState("default", label:'${currentValue}% GPI', unit:"%", icon:"st.Weather.weather13")
-  		}
+    			attributeState("default", label:'${currentValue}% GPI', unit:"%", icon:"st.Weather.weather13", backgroundColors:[
+                    [value: 24, color: "#1c71ff"],
+                    [value: 49, color: "#5c93ee"],
+                    [value: 74, color: "#ff4040"],
+                    [value: 100, color: "#d62d20"]
+                ])
+  			}
        // valueTile("pollution", "device.pollution", inactiveLabel: false, decoration: "flat") {
        //     state "default", label:'${currentValue}% GPI', unit:"%"
        		tileAttribute("thermostatOperatingState", key: "OPERATING_STATE") {
