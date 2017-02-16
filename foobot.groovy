@@ -43,8 +43,8 @@ metadata {
 
 	tiles (scale: 2){   
 
-        
-        multiAttributeTile(name:"pollution", type:"thermostat", width:6, height:4) {
+
+        multiAttributeTile(name:"pollution", type:"generic", width:6, height:4) {
             tileAttribute("device.pollution", key: "PRIMARY_CONTROL") {
     			attributeState("default", label:'${currentValue}% GPI', unit:"%", icon:"st.Weather.weather13", backgroundColors:[
                     [value: 24, color: "#1c71ff"],
@@ -55,12 +55,9 @@ metadata {
   			}
        // valueTile("pollution", "device.pollution", inactiveLabel: false, decoration: "flat") {
        //     state "default", label:'${currentValue}% GPI', unit:"%"
-       		tileAttribute("thermostatOperatingState", key: "OPERATING_STATE") {
-    			attributeState("great", backgroundColor:"#bc2323")
-  				attributeState("good", backgroundColor:"#bc2323")
-            	attributeState("fair", backgroundColor:"#ffa81e")
-                attributeState("poor", backgroundColor:"#44b621")
-       }
+       		tileAttribute("device.GPIState", key: "SECONDARY_CONTROL") {
+    			attributeState("default", label:'${currentValue}')
+			}
        }
         valueTile("co2", "device.co2", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
             state "default", label:'${currentValue} CO2 ppm', unit:"ppm"
