@@ -77,8 +77,19 @@ metadata {
         standardTile("refresh", "device.refresh", inactiveLabel: false, width: 2, height: 2, decoration: "flat") {
             state "default", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
+
+        standardTile("spacerlastUpdatedLeft", "spacerTile", decoration: "flat", width: 1, height: 1) {
+ 		}
+
+        valueTile("lastUpdated", "device.lastUpdated", inactiveLabel: false, decoration: "flat", width: 4, height: 1) {
+			state "default", label:'Last updated:\n${currentValue}'
+		}
+
+        standardTile("spacerlastUpdatedRight", "spacerTile", decoration: "flat", width: 1, height: 1) {
+ 		}
+
         main "pollution"
-        details(["pollution","co2","voc","particle","humidity", "temperature", "refresh"])
+        details(["pollution","co2","voc","particle","humidity", "temperature", "refresh", "spacerlastUpdatedLeft", "lastUpdated", "spacerlastUpdatedRight"])
 	}
 }
 
@@ -174,7 +185,10 @@ def poll() {
             else if (allpollu > 75){
             	sendEvent(name: "GPIState", value: "poor", isStateChange: true)
             }
-            
+
+            def now = new Date().format("EEE, d MMM yyyy HH:mm:ss",location.timeZone)
+            sendEvent(name:"lastUpdated", value: now, displayed: false)
+
           //  def tmp = resp.data.datapoints[-1][2]
           //  if(getTemperatureScale() == "C") {
             //	tmp = Integer.tmp
