@@ -11,9 +11,9 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
- *  Version 1.7.3
+ *  Version 1.7.4
  *  Author: AdamV
- *  Date: 2017-01-24
+ *  Date: 2017-03-28
  *
  * Configuration code from Stuart Buchanan
  */
@@ -64,8 +64,8 @@ metadata {
                         state "battery", label:'${currentValue}% battery', unit:""
         	}
         }*/
-        valueTile("configure", "device.button", width: 2, height: 2, decoration: "flat") {
-			state "default", label: "configure", backgroundColor: "#ffffff", action: "configure"
+        standardTile("configure", "device.configure", width: 2, height: 2, decoration: "flat") {
+			state "default", label: "", icon:"st.secondary.configure", backgroundColor: "#ffffff", action: "configuration.configure"
         }
         
         main "button"
@@ -341,7 +341,9 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
 }
  
-
+def refresh() {
+	configure()
+}
 
   def configure() {
     
