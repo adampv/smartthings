@@ -11,11 +11,11 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  *
- *  Version 1.7.4
+ *  Version 1.7.5
  *  Author: AdamV
- *  Date: 2017-03-28
+ *  Date: 2017-07-24
  *
- * Configuration code from Stuart Buchanan
+ * Paddle Configuration code from Stuart Buchanan
  */
  
 metadata {
@@ -25,12 +25,15 @@ metadata {
         capability "Battery"
 		capability "Configuration" 
        	capability "Refresh"
+        capability "Health Check"
 
+		command "resetBatteryRuntime"
 		command "describeAttributes"
         
 		attribute "numberOfButtons", "number"
         attribute "Button Events", "enum",  ["#1 pushed", "#1 held", "#1 double clicked", "#1 click held", "#1 hold released", "#1 click hold released", "#2 pushed", "#2 held", "#2 double clicked", "#2 click held", "#2 hold released", "#2 click hold released", "#3 pushed", "#3 held", "#3 double clicked", "#3 click held", "#3 hold released", "#3 click hold released", "#4 pushed", "#4 held", "#4 double clicked", "#4 click held", "#4 hold released", "#4 click hold released"]
         attribute "button", "enum", ["pushed", "held", "double clicked", "click held"]
+        attribute "needUpdate", "string"
         
 		fingerprint deviceId: "0x1801", inClusters: "0x5E, 0x70, 0x85, 0x2D, 0x8E, 0x80, 0x84, 0x8F, 0x5A, 0x59, 0x5B, 0x73, 0x86, 0x72", outClusters: "0x20, 0x5B, 0x26, 0x27, 0x2B, 0x60"
    		fingerprint deviceId: "0x1202", inClusters: "0x5E, 0x8F, 0x73, 0x98, 0x86, 0x72, 0x70, 0x85, 0x2D, 0x8E, 0x80, 0x84, 0x5A, 0x59, 0x5B", outClusters:  "0x20, 0x5B, 0x26, 0x27, 0x2B, 0x60"												
@@ -67,9 +70,20 @@ metadata {
         standardTile("configure", "device.configure", width: 2, height: 2, decoration: "flat") {
 			state "default", label: "", icon:"st.secondary.configure", backgroundColor: "#ffffff", action: "configuration.configure"
         }
+      	standardTile(
+			"batteryRuntime", "device.batteryRuntime", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "batteryRuntime", label:'Battery: ${currentValue} Double tap to reset counter', unit:"", action:"resetBatteryRuntime"
+		}
+        standardTile(
+			"statusText2", "device.statusText2", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "statusText2", label:'${currentValue}', unit:"", action:"resetBatteryRuntime"
+		}
+        standardTile("refresh", "device.switch", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+			state "default", label:'', action:"refresh.refresh", icon:"st.secondary.refresh"
+		}
         
         main "button"
-		details(["button", "battery", "configure"])
+		details(["button", "battery", "configure", "statusText2", "refresh"])
 	}
     
 }
@@ -79,6 +93,7 @@ def parse(String description) {
   //   log.debug("RAW command: $description")
 	if (description.startsWith("Err")) {
 		log.debug("An error has occurred")
+        updateStatus()
 		} 
     else {
        
@@ -86,11 +101,12 @@ def parse(String description) {
         //log.debug "Parsed Command: $cmd"
         if (cmd) {
        	results = zwaveEvent(cmd)
+        updateStatus()
 		}
         if ( !state.numberOfButtons ) {
     	state.numberOfButtons = "8"
         createEvent(name: "numberOfButtons", value: "8", displayed: false)
-
+		updateStatus()
   		}
     }
 }
@@ -122,9 +138,16 @@ def zwaveEvent(physicalgraph.zwave.commands.centralscenev1.CentralSceneNotificat
       // 	log.debug( "payload: $cmd.payload")
 }
 
-def zwaveEvent(physicalgraph.zwave.commands.wakeupv1.WakeUpNotification cmd) {
-	[ createEvent(descriptionText: "${device.displayName} woke up"),
-	  response(zwave.wakeUpV1.wakeUpNoMoreInformation()) ]
+def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpNotification cmd) {
+	  createEvent(descriptionText: "${device.displayName} woke up")
+      log.debug("WakeUpNotification ${cmd.toString()}")
+	  response(zwave.wakeUpV2.wakeUpNoMoreInformation())
+      updateStatus()
+}
+
+def zwaveEvent(physicalgraph.zwave.commands.wakeupv2.WakeUpIntervalReport cmd){
+	log.debug("WakeUpIntervalReport ${cmd.toString()}")
+    state.wakeInterval = cmd.seconds
 }
 
 def zwaveEvent(physicalgraph.zwave.commands.switchmultilevelv1.SwitchMultilevelGet cmd) {
@@ -176,7 +199,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
    	else if  ( cmd.sceneId == 13 ) {
         	Integer button = 1
-            sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed", isStateChange: true)
+            sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is held", isStateChange: true)
             sendEvent(name: "Button Events", value: "#$button held", descriptionText: "$device.displayName button $button was held", isStateChange: true)
             log.debug( "Button $button Hold start" )
             }
@@ -192,7 +215,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
         	Integer button = 1
             def patchButton = button + 8
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was pushed", isStateChange: true)
-            sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
+            sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is released")
         	sendEvent(name: "Button Events", value: "#$button hold released", descriptionText: "$device.displayName button $button was Released", isStateChange: true)
             log.debug( "Button $button Hold stop" )
             }
@@ -220,7 +243,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
     else if  ( cmd.sceneId == 23 ) {
         	Integer button = 2
-            sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
+            sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is held")
         	sendEvent(name: "Button Events", value: "#$button held", descriptionText: "$device.displayName button $button was held", isStateChange: true)
             log.debug( "Button $button Hold start" )
             }
@@ -236,7 +259,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
         	Integer button = 2
             def patchButton = button + 8
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
-            sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
+            sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is released")
         	sendEvent(name: "Button Events", value: "#$button hold released", descriptionText: "$device.displayName button $button was Released", isStateChange: true)
             log.debug( "Button $button Hold stop" )
             }
@@ -264,7 +287,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
     else if  ( cmd.sceneId == 33 ) {
         	Integer button = 3
-            sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
+            sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is held")
         	sendEvent(name: "Button Events", value: "#$button held", descriptionText: "$device.displayName button $button was held", isStateChange: true)
             log.debug( "Button $button Hold start" )
             }
@@ -280,7 +303,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
         	Integer button = 3
             def patchButton = button + 8
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
-            sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
+            sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is released")
         	sendEvent(name: "Button Events", value: "#$button hold released", descriptionText: "$device.displayName button $button was Released", isStateChange: true)
             log.debug( "Button $button Hold stop" )
             }
@@ -308,7 +331,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
             }
     else if  ( cmd.sceneId == 43 ) {
         	Integer button = 4
-            sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is closed")
+            sendEvent(name: "button", value: "held", data: [buttonNumber: button], descriptionText: "Button $button is held")
         	sendEvent(name: "Button Events", value: "#$button held", descriptionText: "$device.displayName button $button was held", isStateChange: true)
             log.debug( "Button $button Hold start" )
             }
@@ -324,7 +347,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
         	Integer button = 4
             def patchButton = button + 8
             sendEvent(name: "button", value: "pushed", data: [buttonNumber: patchButton], descriptionText: "$device.displayName button $button was held", isStateChange: true)
-            sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is open")
+            sendEvent(name: "button", value: "holdRelease", data: [buttonNumber: button], descriptionText: "Button $button is released")
         	sendEvent(name: "Button Events", value: "#$button hold released", descriptionText: "$device.displayName button $button was Released", isStateChange: true)
             log.debug( "Button $button Hold stop" )
             }
@@ -343,6 +366,7 @@ def zwaveEvent(physicalgraph.zwave.commands.sceneactivationv1.SceneActivationSet
  
 def refresh() {
 	configure()
+    updateStatus()
 }
 
   def configure() {
@@ -366,12 +390,54 @@ def refresh() {
     cmds << zwave.configurationV1.configurationSet(configurationValue: [0], parameterNumber: 22, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 24, size: 1).format()
     cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 25, size: 1).format()
-    cmds << zwave.configurationV1.configurationSet(configurationValue: [2], parameterNumber: 30, size: 1).format()
+    cmds << zwave.configurationV1.configurationSet(configurationValue: [1], parameterNumber: 30, size: 1).format()
+    cmds << zwave.wakeUpV2.wakeUpIntervalSet(seconds:345600, nodeid:zwaveHubNodeId).format()
+    cmds << zwave.batteryV1.batteryGet().format()
     
     delayBetween(cmds, 500)
 }
        
+private getBatteryRuntime() {
+   def currentmillis = now() - state.batteryRuntimeStart
+   def days=0
+   def hours=0
+   def mins=0
+   def secs=0
+   secs = (currentmillis/1000).toInteger() 
+   mins=(secs/60).toInteger() 
+   hours=(mins/60).toInteger() 
+   days=(hours/24).toInteger() 
+   secs=(secs-(mins*60)).toString().padLeft(2, '0') 
+   mins=(mins-(hours*60)).toString().padLeft(2, '0') 
+   hours=(hours-(days*24)).toString().padLeft(2, '0') 
+ 
 
+  if (days>0) { 
+      return "$days days and $hours:$mins:$secs"
+  } else {
+      return "$hours:$mins:$secs"
+  }
+}
+
+def resetBatteryRuntime() {
+    if (state.lastReset != null && now() - state.lastReset < 5000) {
+        log.debug("Battery reset Double Press")
+        state.batteryRuntimeStart = now()
+        updateStatus()
+    }
+    state.lastReset = now()
+}
+
+private updateStatus(){
+   def result = []
+   if(state.batteryRuntimeStart != null){
+        //sendEvent(name:"batteryRuntime", value:getBatteryRuntime(), displayed:false)
+        sendEvent(name:"statusText2", value: "Battery: ${getBatteryRuntime()} Double tap to reset", displayed:true)
+        
+    } else {
+        state.batteryRuntimeStart = now()
+    }
+}
 
 /*
 // Correct configure for dim events:
